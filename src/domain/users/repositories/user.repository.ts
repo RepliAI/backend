@@ -5,4 +5,6 @@ export const USER_REPOSITORY = 'USER_REPOSITORY';
 export interface IUserRepository {
   findByEmail(email: string): Promise<User | null>;
   create(user: User): Promise<void>;
+  findById(id: string): Promise<User | null>;
+  updateRefreshTokenHash(userId: string, hash: string | null): Promise<void>;
 }
