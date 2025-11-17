@@ -1,7 +1,7 @@
 import { Body, ConflictException, Controller, Post } from '@nestjs/common';
 import { RegisterUserUseCase } from 'src/application/users/use-cases/register-user.usecase';
 import { RegisterUserInput } from 'src/application/users/dto/register-user.input';
-import { UserAlreadyExistsError } from 'src/domain/shared/errors/user-already-exist.error';
+import { UserAlreadyExistsError } from 'src/domain/shared/errors/user-already-exist.errors';
 import { LoginUserUseCase } from 'src/application/users/use-cases/login-user.usercase';
 import { RefreshTokensUseCase } from 'src/application/users/use-cases/refresh-token.usecase';
 import { RegisterUserRequestDto } from '../dto/register-user.dto';

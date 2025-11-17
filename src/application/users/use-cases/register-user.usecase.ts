@@ -4,7 +4,7 @@ import { randomUUID } from 'crypto';
 import { IUserRepository, USER_REPOSITORY } from 'src/domain/users/repositories/user.repository';
 import { RegisterUserInput } from '../dto/register-user.input';
 import { User } from 'src/domain/users/entities/user.entity';
-import { UserAlreadyExistsError } from 'src/domain/shared/errors/user-already-exist.error';
+import { UserAlreadyExistsError } from 'src/domain/shared/errors/user-already-exist.errors';
 
 export class RegisterUserUseCase {
   constructor(
