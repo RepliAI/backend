@@ -3,6 +3,7 @@ export class User {
       public readonly id: string,
       public email: string,
       public passwordHash: string,
+      public refreshTokenHash?: string | null,
     ) {}
   }
   
