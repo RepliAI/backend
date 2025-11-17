@@ -1,4 +1,4 @@
-import { Ticket } from "../entitites/ticket.entity";
+import { Ticket } from "../entities/ticket.entity";
 
 export const TICKET_REPOSITORY = 'TICKET_REPOSITORY';
 

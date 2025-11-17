@@ -1,4 +1,4 @@
-import { Ticket } from 'src/domain/tickets/entitites/ticket.entity';
+import { Ticket } from 'src/domain/tickets/entities/ticket.entity';
 import { TicketMessageOutput, TicketDetailOutput } from '../dto/get-tickets.output';
 import { TicketListItemOutput } from '../dto/list-tickets.output';
 
