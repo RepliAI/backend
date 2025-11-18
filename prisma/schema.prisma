@@ -14,10 +14,33 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
+  id               String   @id @default(cuid())
+  email            String   @unique
+  passwordHash     String
   refreshTokenHash String?
-  createdAt    DateTime @default(now())
+  tickets          Ticket[]
+  createdAt        DateTime @default(now())
 }
 
+model Ticket {
+  id         String    @id @default(cuid())
+  subject    String
+  status     String
+  createdAt  DateTime  @default(now())
+
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+
+  messages   Message[]
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+
+  from      String
+  to        String
+  content   String
+  date      DateTime
+}
