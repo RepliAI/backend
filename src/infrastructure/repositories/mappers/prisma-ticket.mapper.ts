@@ -1,6 +1,5 @@
 import { Ticket } from 'src/domain/tickets/entities/ticket.entity';
-import { Message } from '../../../domain/tickets/entities/message.entity';
-import { TicketStatus } from '../../../domain/tickets/value-objects/ticket-status.vo';
+import { Message } from 'src/domain/tickets/entities/message.entity';
 
 export class PrismaTicketMapper {
   static toDomain(raw: any): Ticket {
@@ -8,9 +7,9 @@ export class PrismaTicketMapper {
       raw.id,
       raw.userId,
       raw.subject,
-      raw.status as TicketStatus,
+      raw.status,
       raw.createdAt,
-      raw.messages?.map(
+      (raw.messages ?? []).map(
         (message: any) =>
           new Message(
             message.id,
@@ -20,7 +19,7 @@ export class PrismaTicketMapper {
             message.content,
             new Date(message.date)
           )
-      ) ?? [],
+      ),
     );
   }
 }
