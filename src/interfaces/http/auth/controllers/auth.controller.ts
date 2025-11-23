@@ -36,6 +36,8 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() dto: LoginRequestDto) {
+    console.log("🚀 ~ AuthController ~ login ~ dto:", dto)
+    
     return this.loginUserUseCase.execute({
       email: dto.email,
       password: dto.password,
