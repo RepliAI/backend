@@ -5,6 +5,8 @@ import { IdGeneratorModule } from 'src/infrastructure/shared/id-generator/id-gen
 import { ListTicketsUseCase } from './use-cases/list-tickets.usecase';
 import { GetTicketByIdUseCase } from './use-cases/get-ticket.usecase';
 import { GenerateAiReplyUseCase } from './use-cases/generate-ai-reply.usecase';
+import { CreateTicketUseCase } from './use-cases/create-ticket.usecase';
+import { AddMessageToTicketUseCase } from './use-cases/add-message.usecase';
 
 @Module({
   imports: [
@@ -16,11 +18,15 @@ import { GenerateAiReplyUseCase } from './use-cases/generate-ai-reply.usecase';
     ListTicketsUseCase,
     GetTicketByIdUseCase,
     GenerateAiReplyUseCase,
+    CreateTicketUseCase,
+    AddMessageToTicketUseCase,
   ],
   exports: [
     ListTicketsUseCase,
     GetTicketByIdUseCase,
-    GenerateAiReplyUseCase
+    GenerateAiReplyUseCase,
+    CreateTicketUseCase,
+    AddMessageToTicketUseCase,
   ],
 })
 export class TicketsApplicationModule {}
