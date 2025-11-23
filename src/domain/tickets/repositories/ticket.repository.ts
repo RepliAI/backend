@@ -6,4 +6,5 @@ export interface ITicketRepository {
   findAllByUser(userId: string): Promise<Ticket[]>;
   findById(id: string, userId: string): Promise<Ticket | null>;
   create(ticket: Ticket): Promise<void>;
+  update(ticket: Ticket): Promise<void>;
 }

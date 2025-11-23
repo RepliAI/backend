@@ -48,4 +48,25 @@ export class PrismaTicketRepository implements ITicketRepository {
       },
     });
   }
+
+  async update(ticket: Ticket): Promise<void> {
+    await this.prisma.ticket.update({
+      where: { id: ticket.id },
+      data: {
+        subject: ticket.subject,
+        status: ticket.status,
+        messages: {
+          deleteMany: {},
+          create: ticket.messages.map(message => ({
+            id: message.id,
+            from: message.from,
+            to: message.to,
+            content: message.content,
+            date: message.date,
+          })),
+        },
+      },
+    });
+  }
+
 }
