@@ -4,9 +4,13 @@ import { IStatsRepository, TicketStats } from 'src/domain/stats/repositories/sta
 
 @Injectable()
 export class PrismaStatsRepository implements IStatsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
-  async getStats(userId: string): Promise<TicketStats> {
+  async getStats(userId: string, days: number = 14): Promise<TicketStats> {
+    const now = new Date();
+    const from = new Date();
+    from.setDate(now.getDate() - days);
+
     const total = await this.prisma.ticket.count({ where: { userId } });
 
     const open = await this.prisma.ticket.count({
@@ -32,12 +36,37 @@ export class PrismaStatsRepository implements IStatsRepository {
       },
     });
 
+    const periodTickets = await this.getTicketsBetween(userId, from, now);
+
     return {
       total,
       open,
       pending,
       resolved,
       lastTickets,
+      period: {
+        from,
+        to: now,
+        tickets: periodTickets,
+      },
     };
+  }
+
+  async getTicketsBetween(userId: string, from: Date, to: Date) {
+    return this.prisma.ticket.findMany({
+      where: {
+        userId,
+        createdAt: {
+          gte: from,
+          lte: to,
+        },
+      },
+      orderBy: { createdAt: 'asc' },
+      select: {
+        id: true,
+        subject: true,
+        createdAt: true,
+      },
+    });
   }
 }

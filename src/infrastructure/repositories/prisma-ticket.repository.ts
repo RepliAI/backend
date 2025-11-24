@@ -68,5 +68,4 @@ export class PrismaTicketRepository implements ITicketRepository {
       },
     });
   }
-
 }
