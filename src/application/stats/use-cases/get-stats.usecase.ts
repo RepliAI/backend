@@ -8,7 +8,7 @@ export class GetStatsUseCase {
     private readonly statsRepository: IStatsRepository,
   ) {}
 
-  async execute(userId: string) {
-    return this.statsRepository.getStats(userId);
+  async execute(userId: string, days: number = 14) {
+    return this.statsRepository.getStats(userId, days);
   }
 }

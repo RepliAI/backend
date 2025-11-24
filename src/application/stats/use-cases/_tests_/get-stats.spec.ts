@@ -3,30 +3,33 @@ import { IStatsRepository } from 'src/domain/stats/repositories/stats.repository
 
 describe('GetStatsUseCase', () => {
   let useCase: GetStatsUseCase;
-  let statsRepository: jest.Mocked<IStatsRepository>;
+  let statsRepo: jest.Mocked<IStatsRepository>;
 
   beforeEach(() => {
-    statsRepository = {
+    statsRepo = {
       getStats: jest.fn(),
     };
 
-    useCase = new GetStatsUseCase(statsRepository);
+    useCase = new GetStatsUseCase(statsRepo);
   });
 
-  it('should return stats', async () => {
-    const mockResult = {
-      total: 5,
-      open: 2,
-      pending: 1,
-      resolved: 2,
-      lastTickets: [],
-    };
+  it('doit appeler le repo avec 14 jours par défaut', async () => {
+    const fakeResult: any = { total: 10, open: 3, pending: 4, resolved: 3, lastTickets: [], period: { from: new Date(), to: new Date(), tickets: [] } };
+    statsRepo.getStats.mockResolvedValue(fakeResult);
 
-    statsRepository.getStats.mockResolvedValue(mockResult);
+    const result = await useCase.execute('user-1');
 
-    const result = await useCase.execute('user123');
+    expect(statsRepo.getStats).toHaveBeenCalledWith('user-1', 14);
+    expect(result).toBe(fakeResult);
+  });
 
-    expect(result).toEqual(mockResult);
-    expect(statsRepository.getStats).toHaveBeenCalledWith('user123');
+  it('doit passer le nombre de jours fourni au repo', async () => {
+    const fakeResult: any = { total: 20, open: 5, pending: 5, resolved: 10, lastTickets: [], period: { from: new Date(), to: new Date(), tickets: [] } };
+    statsRepo.getStats.mockResolvedValue(fakeResult);
+
+    const result = await useCase.execute('user-1', 30);
+
+    expect(statsRepo.getStats).toHaveBeenCalledWith('user-1', 30);
+    expect(result).toBe(fakeResult);
   });
 });
