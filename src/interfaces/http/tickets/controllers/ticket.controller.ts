@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ListTicketsUseCase } from 'src/application/tickets/use-cases/list-tickets.usecase';
 import { GetTicketByIdUseCase } from 'src/application/tickets/use-cases/get-ticket.usecase';
 import { GenerateAiReplyUseCase } from 'src/application/tickets/use-cases/generate-ai-reply.usecase';
@@ -11,6 +11,8 @@ import { CreateTicketDto } from '../dto/create-ticket.dto';
 import { AddMessageToTicketUseCase } from 'src/application/tickets/use-cases/add-message.usecase';
 import { AddMessageDto } from '../dto/add-messae.dto';
 import { MessageResponseDto } from '../dto/message-response.dto';
+import { ListTicketsQueryDto } from '../dto/list-tickets-query.dto';
+import { ListTicketsResponseDto } from '../dto/list-tickets-response.dto';
 @UseGuards(JwtAuthGuard)
 @Controller('tickets')
 export class TicketsController {
@@ -23,9 +25,26 @@ export class TicketsController {
   ) {}
 
   @Get()
-  async list(@UserId() userId: string): Promise<TicketResponseDto[]> {
-    const tickets = await this.listTickets.execute(userId);
-    return tickets.map((ticket) => TicketResponseDto.fromDomain(ticket));
+  async list(
+    @UserId() userId: string,
+    @Query() query: ListTicketsQueryDto,
+  ): Promise<ListTicketsResponseDto> {
+    const result = await this.listTickets.execute({
+      userId,
+      status: query.status,
+      search: query.search,
+      page: query.page,
+      pageSize: query.pageSize,
+      from: query.from ? new Date(query.from) : undefined,
+  to: query.to ? new Date(query.to) : undefined,
+    });
+
+    return {
+      items: result.items.map(TicketResponseDto.fromDomain),
+      total: result.total,
+      page: result.page,
+      pageSize: result.pageSize,
+    };
   }
 
   @Get(':id')

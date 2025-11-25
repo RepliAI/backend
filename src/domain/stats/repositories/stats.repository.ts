@@ -15,7 +15,13 @@ export interface TicketStats {
       id: string;
       subject: string;
       createdAt: Date;
+      status: string;
     }[];
+    summary: {
+      open: number;
+      pending: number;
+      resolved: number;
+    };
   };
 }
 

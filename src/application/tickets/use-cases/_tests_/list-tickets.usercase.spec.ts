@@ -3,7 +3,7 @@ import { createTicketRepoMock } from '../../../../tests/mocks/ticket-repo.mock';
 import { Ticket } from '../../../../domain/tickets/entities/ticket.entity';
 
 describe('ListTicketsUseCase', () => {
-  it('should return tickets for the given user', async () => {
+  it('should return paginated tickets from the repository with filters', async () => {
     const repo = createTicketRepoMock();
 
     const ticket = new Ticket(
@@ -15,14 +15,33 @@ describe('ListTicketsUseCase', () => {
       []
     );
 
-    repo.findAllByUser.mockResolvedValue([ticket]);
+    repo.listWithFilters.mockResolvedValue({
+      items: [ticket],
+      total: 1,
+    });
 
     const useCase = new ListTicketsUseCase(repo);
 
-    const result = await useCase.execute('user1');
+    const result = await useCase.execute({
+      userId: 'user1',
+      page: 1,
+      pageSize: 10,
+      status: undefined,
+      search: undefined,
+    });
 
-    expect(result).toHaveLength(1);
-    expect(repo.findAllByUser).toHaveBeenCalledWith('user1');
-    expect(result[0].id).toBe('t1');
+    expect(repo.listWithFilters).toHaveBeenCalledWith({
+      userId: 'user1',
+      page: 1,
+      pageSize: 10,
+      status: undefined,
+      search: undefined,
+    });
+
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].id).toBe('t1');
+    expect(result.total).toBe(1);
+    expect(result.page).toBe(1);
+    expect(result.pageSize).toBe(10);
   });
 });
