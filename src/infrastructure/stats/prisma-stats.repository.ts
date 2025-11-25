@@ -37,7 +37,10 @@ export class PrismaStatsRepository implements IStatsRepository {
     });
 
     const periodTickets = await this.getTicketsBetween(userId, from, now);
-
+    
+    const periodOpen = periodTickets.filter(t => t.status === 'OPEN').length;
+    const periodPending = periodTickets.filter(t => t.status === 'PENDING').length;
+    const periodResolved = periodTickets.filter(t => t.status === 'RESOLVED').length;
     return {
       total,
       open,
@@ -48,6 +51,11 @@ export class PrismaStatsRepository implements IStatsRepository {
         from,
         to: now,
         tickets: periodTickets,
+        summary: {
+          open: periodOpen,
+          pending: periodPending,
+          resolved: periodResolved,
+        },
       },
     };
   }
@@ -66,6 +74,7 @@ export class PrismaStatsRepository implements IStatsRepository {
         id: true,
         subject: true,
         createdAt: true,
+        status: true,
       },
     });
   }

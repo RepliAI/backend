@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ITicketRepository } from '../../domain/tickets/repositories/ticket.repository';
+import { ITicketRepository, ListTicketsParams, PaginatedTicketsResult } from '../../domain/tickets/repositories/ticket.repository';
 import { PrismaService } from '../prisma/prisma.service';
 import { Ticket } from '../../domain/tickets/entities/ticket.entity';
 import { PrismaTicketMapper } from './mappers/prisma-ticket.mapper';
@@ -16,6 +16,56 @@ export class PrismaTicketRepository implements ITicketRepository {
     });
 
     return result.map(PrismaTicketMapper.toDomain);
+  }
+
+  async listWithFilters(params: ListTicketsParams): Promise<PaginatedTicketsResult> {
+    const { userId, status, search, page, pageSize } = params;
+
+    const where: any = { userId };
+
+    if (params.from || params.to) {
+      where.createdAt = {};
+    
+      if (params.from) {
+        where.createdAt.gte = params.from;
+      }
+      if (params.to) {
+        where.createdAt.lte = params.to;
+      }
+    }
+
+    if (status) {
+      where.status = status;
+    }
+
+    if (search) {
+      where.OR = [
+        { subject: { contains: search, mode: 'insensitive' } },
+        {
+          messages: {
+            some: {
+              content: { contains: search, mode: 'insensitive' },
+            },
+          },
+        },
+      ];
+    }
+
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.ticket.findMany({
+        where,
+        include: { messages: true },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      this.prisma.ticket.count({ where }),
+    ]);
+
+    return {
+      items: rows.map(PrismaTicketMapper.toDomain),
+      total,
+    };
   }
 
   async findById(id: string, userId: string): Promise<Ticket | null> {

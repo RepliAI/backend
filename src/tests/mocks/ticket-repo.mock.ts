@@ -6,5 +6,6 @@ export function createTicketRepoMock(): jest.Mocked<ITicketRepository> {
     findById: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
+    listWithFilters: jest.fn(),
   };
 }
