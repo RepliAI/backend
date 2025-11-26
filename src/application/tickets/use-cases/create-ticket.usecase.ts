@@ -32,7 +32,7 @@ export class CreateTicketUseCase {
       messageId,
       ticketId,
       'customer',
-      'support',
+      'agent',
       input.content,
       new Date(),
     );
