@@ -10,8 +10,8 @@ export class ListTicketsUseCase {
     ){}
 
     async execute(input: ListTicketsInput): Promise<PaginatedTicketsOutput> {
-        const page = input.page && input.page > 0 ? input.page : 1;
-        const pageSize = input.pageSize && input.pageSize > 0 ? input.pageSize : 10;
+      const page = Number(input.page) > 0 ? Number(input.page) : 1;
+      const pageSize = Number(input.pageSize) > 0 ? Number(input.pageSize) : 10;
     
         const { items, total } = await this.ticketRepository.listWithFilters({
             userId: input.userId,
