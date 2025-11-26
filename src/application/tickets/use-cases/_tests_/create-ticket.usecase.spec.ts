@@ -41,6 +41,6 @@ describe("CreateTicketUseCase", () => {
     expect(message.id).toBe("msg123");
     expect(message.content).toBe("Hello world");
     expect(message.from).toBe("customer");
-    expect(message.to).toBe("support");
+    expect(message.to).toBe("agent");
   });
 });

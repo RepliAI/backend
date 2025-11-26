@@ -1,9 +1,11 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ListTicketsUseCase } from 'src/application/tickets/use-cases/list-tickets.usecase';
 import { GetTicketByIdUseCase } from 'src/application/tickets/use-cases/get-ticket.usecase';
 import { GenerateAiReplyUseCase } from 'src/application/tickets/use-cases/generate-ai-reply.usecase';
 import { CreateTicketInput } from 'src/application/tickets/dto/create-ticket.input';
 import { CreateTicketUseCase } from 'src/application/tickets/use-cases/create-ticket.usecase';
+import { UpdateTicketStatusDto } from 'src/application/tickets/dto/update-status.dto';
+import { UpdateTicketStatusUseCase } from 'src/application/tickets/use-cases/update-status.usecase';
 import { JwtAuthGuard } from '../../auth/security/jwt-auth.guard';
 import { TicketResponseDto } from '../dto/ticket-response.dto';
 import { UserId } from '../../auth/decorators/user-id.decorator';
@@ -13,6 +15,8 @@ import { AddMessageDto } from '../dto/add-messae.dto';
 import { MessageResponseDto } from '../dto/message-response.dto';
 import { ListTicketsQueryDto } from '../dto/list-tickets-query.dto';
 import { ListTicketsResponseDto } from '../dto/list-tickets-response.dto';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+
 @UseGuards(JwtAuthGuard)
 @Controller('tickets')
 export class TicketsController {
@@ -22,6 +26,7 @@ export class TicketsController {
     private readonly generateAiReply: GenerateAiReplyUseCase,
     private readonly createTicket: CreateTicketUseCase,
     private readonly addMessageToTicket: AddMessageToTicketUseCase,
+    private readonly updateTicketStatus: UpdateTicketStatusUseCase,
   ) {}
 
   @Get()
@@ -91,4 +96,15 @@ export class TicketsController {
 
     return MessageResponseDto.fromDomain(message);
   }
+
+  @Patch(':id/status')
+  async updateStatus(
+    @Param('id') id: string,
+    @Body() body: UpdateTicketStatusDto,
+    @CurrentUser() user: any
+  ) {
+    const updated = await this.updateTicketStatus.execute(id, user.id, body.status);
+    return TicketResponseDto.fromDomain(updated);
+  }
+
 }
