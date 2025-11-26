@@ -38,7 +38,7 @@ export class GenerateAiReplyUseCase {
     const newMessage = new Message(
         this.idGenerator.generate(),
         ticket.id,
-        "agent",
+        "ai",
         lastMessage.from,
         aiReply,
         new Date(),

@@ -28,8 +28,8 @@ export class AddMessageToTicketUseCase {
     const message = new Message(
       this.idGenerator.generate(),
       ticket.id,
+      'agent',
       'customer',
-      'support',
       input.content,
       new Date(),
     );
