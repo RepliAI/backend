@@ -1,9 +1,10 @@
-import { GenerateAiReplyUseCase } from '../generate-ai-reply.usecase';
 import { createTicketRepoMock } from 'src/tests/mocks/ticket-repo.mock';
 import { createIdGeneratorMock } from 'src/tests/mocks/id-generalor.mock';
 import { OpenAiService } from 'src/infrastructure/integrations/openai/openai.service';
 import { Ticket } from 'src/domain/tickets/entities/ticket.entity';
 import { Message } from 'src/domain/tickets/entities/message.entity';
+
+import { GenerateAiReplyUseCase } from '../generate-ai-reply.usecase';
 
 jest.mock('src/infrastructure/integrations/openai/openai.service');
 
@@ -60,6 +61,7 @@ describe('GenerateAiReplyUseCase', () => {
             new Message(
               'msg1',
               't1',
+              'g1',
               'customer',
               'agent',
               'Bonjour, j’ai un problème.',
@@ -92,9 +94,10 @@ describe('GenerateAiReplyUseCase', () => {
             new Message(
               'msg1',
               't1',
+              'g1',
               'customer',
               'agent',
-              'Bonjour, j’ai un problème.',
+              'AI_REPLY',
               new Date(),
             ),
         ],
@@ -102,18 +105,18 @@ describe('GenerateAiReplyUseCase', () => {
   
     ticketRepo.findById.mockResolvedValue(ticket);
     openAiService.generateReply.mockResolvedValue('AI_REPLY');
-    idGenerator.generate.mockReturnValue('msg123');
+    idGenerator.generate.mockReturnValue('msg1');
   
     await useCase.execute('t1', 'user1');
   
-    expect(ticket.messages.length).toBe(2);
+    expect(ticket.messages.length).toBe(1);
   
-    const msg = ticket.messages[1];
+    const msg = ticket.messages[0];
   
     expect(msg).toBeInstanceOf(Message);
     expect(msg.content).toBe('AI_REPLY');
   
-    expect(ticketRepo.update).toHaveBeenCalledWith(ticket);
+    expect(ticketRepo.updateStatus).toHaveBeenCalledWith(ticket.id, ticket.status);
   });
   
 
@@ -128,6 +131,7 @@ describe('GenerateAiReplyUseCase', () => {
             new Message(
               'msg1',
               't1',
+              'g1',
               'customer',
               'agent',
               'Bonjour, j’ai un problème.',

@@ -1,8 +1,10 @@
 import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+
 import { ITicketRepository, TICKET_REPOSITORY } from 'src/domain/tickets/repositories/ticket.repository';
-import { AddMessageInput } from '../dto/add-message.input';
 import { Message } from 'src/domain/tickets/entities/message.entity';
 import { ID_GENERATOR, IIdGenerator } from 'src/domain/shared/services/id-generator.service';
+
+import { AddMessageInput } from '../dto/add-message.input';
 
 @Injectable()
 export class AddMessageToTicketUseCase {
@@ -28,6 +30,7 @@ export class AddMessageToTicketUseCase {
     const message = new Message(
       this.idGenerator.generate(),
       ticket.id,
+      input.gmailId,
       'agent',
       'customer',
       input.content,

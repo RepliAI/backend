@@ -14,33 +14,45 @@ datasource db {
 }
 
 model User {
-  id               String   @id @default(cuid())
-  email            String   @unique
+  id               String      @id @default(cuid())
+  email            String      @unique
   passwordHash     String
   refreshTokenHash String?
+  gmailToken       GmailToken?
   tickets          Ticket[]
-  createdAt        DateTime @default(now())
+  createdAt        DateTime    @default(now())
 }
 
 model Ticket {
-  id         String    @id @default(cuid())
-  subject    String
-  status     String
-  createdAt  DateTime  @default(now())
+  id        String   @id @default(cuid())
+  subject   String
+  status    String
+  createdAt DateTime @default(now())
 
-  userId     String
-  user       User      @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  messages   Message[]
+  messages Message[]
 }
 
 model Message {
-  id        String   @id @default(cuid())
-  ticketId  String
-  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  id       String   @id @default(cuid())
+  ticketId String
+  ticket   Ticket   @relation(fields: [ticketId], references: [id])
+  gmailId  String?  @unique
+  from     String
+  to       String
+  content  String
+  date     DateTime
+}
 
-  from      String
-  to        String
-  content   String
-  date      DateTime
+model GmailToken {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  accessToken  String
+  refreshToken String
+  expiryDate   DateTime
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
 }
