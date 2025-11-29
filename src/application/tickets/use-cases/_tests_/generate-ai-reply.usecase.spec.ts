@@ -116,7 +116,6 @@ describe('GenerateAiReplyUseCase', () => {
     expect(msg).toBeInstanceOf(Message);
     expect(msg.content).toBe('AI_REPLY');
   
-    expect(ticketRepo.updateStatus).toHaveBeenCalledWith(ticket.id, ticket.status);
   });
   
 

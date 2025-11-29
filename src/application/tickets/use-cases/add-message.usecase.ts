@@ -39,7 +39,9 @@ export class AddMessageToTicketUseCase {
 
     ticket.addMessage(message);
 
-    await this.ticketRepository.update(ticket);
+    await this.ticketRepository.addMessage(ticket.id, message); 
+    ticket.markPending();
+    await this.ticketRepository.updateStatus(ticket.id, ticket.status);
 
     return message;
   }

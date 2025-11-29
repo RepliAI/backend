@@ -83,7 +83,6 @@ describe('AddMessageToTicketUseCase', () => {
 
     await useCase.execute(input);
 
-    expect(ticketRepository.update).toHaveBeenCalledTimes(1);
-    expect(ticketRepository.update).toHaveBeenCalledWith(ticket);
+    expect(ticketRepository.addMessage).toHaveBeenCalledTimes(1);
   });
 });

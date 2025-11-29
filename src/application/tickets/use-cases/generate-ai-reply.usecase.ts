@@ -2,7 +2,6 @@ import { Injectable, ForbiddenException, NotFoundException, Inject } from "@nest
 
 import { ITicketRepository, TICKET_REPOSITORY } from "src/domain/tickets/repositories/ticket.repository";
 import { IIdGenerator, ID_GENERATOR } from "src/domain/shared/services/id-generator.service";
-import { Message } from "src/domain/tickets/entities/message.entity";
 import { OpenAiService } from "src/infrastructure/integrations/openai/openai.service";
 
 @Injectable()
@@ -40,21 +39,6 @@ export class GenerateAiReplyUseCase {
     `.trim();
 
     const aiReply = await this.openAiService.generateReply(prompt);
-
-    const newMessage = new Message(
-      this.idGenerator.generate(),
-      ticket.id,
-      null,
-      "ai",
-      lastMessage.from,
-      aiReply,
-      new Date()
-    );
-
-    await this.ticketRepository.addMessage(ticket.id, newMessage);
-    ticket.markPending();
-    await this.ticketRepository.updateStatus(ticket.id, ticket.status);
-  
 
     return aiReply;
   }
