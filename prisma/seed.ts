@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
 
-const USER_ID = "fe474bee-82e1-4cf2-90c8-c53a029a26c5";
+const prisma = new PrismaClient();
+const USER_ID = "1bf2591e-f2cb-4243-bfab-61895fe74c89";
 
 async function main() {
   console.log("Seeding realistic tickets...");

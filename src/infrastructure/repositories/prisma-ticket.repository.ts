@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { ITicketRepository, ListTicketsParams, PaginatedTicketsResult } from '../../domain/tickets/repositories/ticket.repository';
+
+import { ITicketRepository, ListTicketsParams, PaginatedTicketsResult } from 'src/domain/tickets/repositories/ticket.repository';
+import { Ticket } from 'src/domain/tickets/entities/ticket.entity';
+import { Message } from 'src/domain/tickets/entities/message.entity';
+
 import { PrismaService } from '../prisma/prisma.service';
-import { Ticket } from '../../domain/tickets/entities/ticket.entity';
 import { PrismaTicketMapper } from './mappers/prisma-ticket.mapper';
 
 @Injectable()
@@ -86,15 +89,6 @@ export class PrismaTicketRepository implements ITicketRepository {
         status: ticket.status,
         createdAt: ticket.createdAt,
         userId: ticket.userId,
-        messages: {
-          create: ticket.messages.map((message) => ({
-            id: message.id,
-            from: message.from,
-            to: message.to,
-            content: message.content,
-            date: message.date,
-          })),
-        },
       },
     });
   }
@@ -105,17 +99,56 @@ export class PrismaTicketRepository implements ITicketRepository {
       data: {
         subject: ticket.subject,
         status: ticket.status,
-        messages: {
-          deleteMany: {},
-          create: ticket.messages.map(message => ({
-            id: message.id,
-            from: message.from,
-            to: message.to,
-            content: message.content,
-            date: message.date,
-          })),
-        },
       },
+    });
+  }
+
+  async findBySubjectAndUser(subject: string, userId: string): Promise<Ticket | null> {
+    const record = await this.prisma.ticket.findFirst({
+      where: { subject, userId },
+      include: { messages: true },
+    });
+  
+    if (!record) return null;
+    return PrismaTicketMapper.toDomain(record);
+  }
+
+  async addMessage(ticketId: string, message: Message): Promise<void> {
+    await this.prisma.message.create({
+      data: {
+        id: message.id,
+        ticketId,
+        gmailId: message.gmailId,
+        from: message.from,
+        to: message.to,
+        content: message.content,
+        date: message.date,
+      },
+    });
+  }
+  
+  async findMessageByGmailId(gmailId: string): Promise<Message | null> {
+    const record = await this.prisma.message.findUnique({
+      where: { gmailId },
+    });
+  
+    if (!record) return null;
+  
+    return new Message(
+      record.id,
+      record.ticketId,
+      record.gmailId,
+      record.from,
+      record.to,
+      record.content,
+      record.date,
+    );
+  }
+
+  async updateStatus(ticketId: string, status: string): Promise<void> {
+    const ticket = await this.prisma.ticket.update({
+      where: { id: ticketId },
+      data: { status },
     });
   }
 }

@@ -13,4 +13,8 @@ export class Ticket {
   addMessage(message: Message) {
     this.messages.push(message);
   }
+
+  markPending() {
+    this.status = "PENDING";
+  }
 }

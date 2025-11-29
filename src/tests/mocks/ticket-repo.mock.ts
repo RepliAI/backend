@@ -7,5 +7,9 @@ export function createTicketRepoMock(): jest.Mocked<ITicketRepository> {
     create: jest.fn(),
     update: jest.fn(),
     listWithFilters: jest.fn(),
+    findBySubjectAndUser: jest.fn(),
+    findMessageByGmailId: jest.fn(),
+    addMessage: jest.fn(),
+    updateStatus: jest.fn(),
   };
 }

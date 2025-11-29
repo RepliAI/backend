@@ -1,9 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
+
 import { ITicketRepository } from 'src/domain/tickets/repositories/ticket.repository';
-import { CreateTicketInput } from '../dto/create-ticket.input';
 import { Ticket } from 'src/domain/tickets/entities/ticket.entity';
 import { Message } from 'src/domain/tickets/entities/message.entity';
 import { ID_GENERATOR, IIdGenerator } from 'src/domain/shared/services/id-generator.service';
+import { TicketStatus } from 'src/domain/tickets/value-objects/ticket-status.vo';
+
+import { CreateTicketInput } from '../dto/create-ticket.input';
 
 @Injectable()
 export class CreateTicketUseCase {
@@ -23,7 +26,7 @@ export class CreateTicketUseCase {
       ticketId,
       input.userId,
       input.subject,
-      'open',
+      TicketStatus.OPEN,
       new Date(),
       [],
     );
@@ -31,6 +34,7 @@ export class CreateTicketUseCase {
     const message = new Message(
       messageId,
       ticketId,
+      input.gmailId,
       'customer',
       'agent',
       input.content,

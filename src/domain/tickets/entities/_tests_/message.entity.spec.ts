@@ -7,6 +7,7 @@ describe('Message Entity', () => {
     const message = new Message(
       'm1',
       't1',
+      'g1',
       'client@example.com',
       'support@example.com',
       'Hello world',
