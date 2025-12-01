@@ -5,7 +5,7 @@ import { IGmailService, GmailMessage } from 'src/domain/gmail/service/gmail.serv
 
 @Injectable()
 export class GmailService implements IGmailService {
-    private oauth2Client;
+    private oauth2Client: any;
 
     constructor(private readonly prisma: PrismaService) {
         this.oauth2Client = new google.auth.OAuth2(
@@ -55,7 +55,9 @@ export class GmailService implements IGmailService {
         });
     }
 
-    private async getClient(userId: string) {
+    private async getClient(
+        userId: string
+    ) {
         const token = await this.prisma.gmailToken.findUnique({
             where: { userId },
         });
@@ -103,6 +105,7 @@ export class GmailService implements IGmailService {
 
             messages.push({
                 id: msg.id!,
+                threadId: full.data.threadId!,
                 from: htmlDecode(getHeader('From')),
                 to: htmlDecode(getHeader('To')),
                 subject: htmlDecode(getHeader('Subject')),
@@ -113,6 +116,100 @@ export class GmailService implements IGmailService {
 
         return messages;
     }
+
+    async sendReply(params: {
+        userId: string;
+        threadId: string;
+        to: string;
+        subject: string;
+        content: string;
+    }): Promise<string> {
+    
+        const token = await this.getToken(params.userId);
+    
+        this.oauth2Client.setCredentials({
+            access_token: token.accessToken,
+            refresh_token: token.refreshToken,
+        });
+    
+        const gmail = google.gmail({ version: 'v1', auth: this.oauth2Client });
+    
+        const raw = this.buildRawEmail({
+            to: params.to,
+            subject: params.subject,
+            content: params.content,
+        });
+    
+        const res = await gmail.users.messages.send({
+            userId: 'me',
+            requestBody: {
+                raw,
+                threadId: params.threadId,
+            },
+        });
+    
+        return res.data.id!;
+    }
+
+    private buildRawEmail({ to, subject, content }: { to: string; subject: string; content: string }) {
+        const encodedSubject = this.encodeHeader(subject);
+        const str =
+          `To: ${to}\r\n` +
+          `Subject: ${encodedSubject}\r\n` +
+          `Content-Type: text/plain; charset="UTF-8"\r\n\r\n` +
+          content;
+      
+        return Buffer.from(str)
+          .toString('base64')
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_');
+    }
+    private async getToken(userId: string): Promise<{
+        accessToken: string;
+        refreshToken: string;
+        expiryDate: Date;
+      }> {
+        const token = await this.prisma.gmailToken.findUnique({
+          where: { userId },
+        });
+      
+        if (!token) {
+          throw new Error('No Gmail token found for this user');
+        }
+      
+        const isExpired = token.expiryDate.getTime() < Date.now();
+      
+        if (!isExpired) {
+          return {
+            accessToken: token.accessToken,
+            refreshToken: token.refreshToken,
+            expiryDate: token.expiryDate,
+          };
+        }
+      
+        const refreshed = await this.oauth2Client.refreshToken(token.refreshToken);
+        const newToken = refreshed.tokens;
+      
+        await this.prisma.gmailToken.update({
+          where: { userId },
+          data: {
+            accessToken: newToken.access_token!,
+            expiryDate: new Date(Date.now() + (newToken.expires_in ?? 3600) * 1000),
+          },
+        });
+      
+        return {
+          accessToken: newToken.access_token!,
+          refreshToken: token.refreshToken,
+          expiryDate: new Date(Date.now() + (newToken.expires_in ?? 3600) * 1000),
+        };
+    }
+    private encodeHeader(value: string): string {
+        const base64 = Buffer.from(value, 'utf8').toString('base64');
+        return `=?UTF-8?B?${base64}?=`;
+    }
+      
+
 }
 
 const htmlDecode = (input: string): string =>  {
@@ -132,29 +229,67 @@ const decodeGmailBase64 = (str: string): string => {
     return buff.toString('utf8');
 }
 
+function extractTopReply(text: string): string {
+    if (!text) return '';
+
+    const patterns = [
+        /^On .* wrote:/mi,
+        /^Le .* a écrit ?:?/mi,
+        /^-----Original Message-----/mi,
+    ];
+
+    let cutIndex = -1;
+
+    for (const p of patterns) {
+        const match = text.match(p);
+        if (match) {
+            cutIndex = match.index!;
+            break;
+        }
+    }
+
+    if (cutIndex !== -1) {
+        return text.substring(0, cutIndex).trim();
+    }
+
+    // fallback : remove quote lines
+    return text
+        .split('\n')
+        .filter(line => !line.trim().startsWith('>'))
+        .join('\n')
+        .trim();
+}
+
 const extractEmailBody = (payload: any): string => {
     if (!payload) return '';
 
+    let text = '';
+
     if (!payload.parts) {
-        return payload.body?.data
+        text = payload.body?.data
             ? decodeGmailBase64(payload.body.data)
             : '';
-    }
+    } else {
+        for (const part of payload.parts) {
+            if (part.mimeType === 'text/plain' && part.body?.data) {
+                text = decodeGmailBase64(part.body.data);
+                break;
+            }
+        }
 
-    for (const part of payload.parts) {
-        if (part.mimeType === 'text/plain' && part.body?.data) {
-            return decodeGmailBase64(part.body.data);
+        if (!text) {
+            for (const part of payload.parts) {
+                if (part.mimeType === 'text/html' && part.body?.data) {
+                    const html = decodeGmailBase64(part.body.data);
+                    text = cleanHtml(html);
+                    break;
+                }
+            }
         }
     }
 
-    for (const part of payload.parts) {
-        if (part.mimeType === 'text/html' && part.body?.data) {
-            const html = decodeGmailBase64(part.body.data);
-            return cleanHtml(html);
-        }
-    }
-    return '';
-}
+    return extractTopReply(text);
+};
 
 const cleanHtml = (html: string): string => {
     let text = html;

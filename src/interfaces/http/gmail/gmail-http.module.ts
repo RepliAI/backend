@@ -8,6 +8,7 @@ import { TICKET_REPOSITORY } from 'src/domain/tickets/repositories/ticket.reposi
 import { PrismaTicketRepository } from 'src/infrastructure/repositories/prisma-ticket.repository';
 import { ID_GENERATOR, IIdGenerator } from 'src/domain/shared/services/id-generator.service';
 import { UuidGeneratorService } from 'src/infrastructure/shared/id-generator/uuid-id-generator.service';
+import { IGMAIL_SERVICE } from 'src/domain/gmail/service/gmail.service';
 
 import { GmailController } from './gmail.controller';
 
@@ -29,19 +30,19 @@ import { GmailController } from './gmail.controller';
       provide: GetGmailAuthUrlUseCase,
       useFactory: (gmailService) =>
         new GetGmailAuthUrlUseCase(gmailService),
-      inject: ['IGmailService'],
+      inject: [IGMAIL_SERVICE],
     },
     {
       provide: HandleGmailCallbackUseCase,
       useFactory: (gmailService) =>
         new HandleGmailCallbackUseCase(gmailService),
-      inject: ['IGmailService'],
+      inject: [IGMAIL_SERVICE],
     },
     {
       provide: ImportEmailsUseCase,
       useFactory: (gmailService, ticketRepo, idGenerator: IIdGenerator) =>
         new ImportEmailsUseCase(gmailService, ticketRepo, idGenerator),
-      inject: ['IGmailService', TICKET_REPOSITORY, ID_GENERATOR],
+      inject: [IGMAIL_SERVICE, TICKET_REPOSITORY, ID_GENERATOR],
     },
   ],
 })

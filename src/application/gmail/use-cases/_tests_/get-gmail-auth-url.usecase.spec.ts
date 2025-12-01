@@ -9,11 +9,14 @@ describe("GetGmailAuthUrlUseCase", () => {
       generateAuthUrl: jest.fn().mockReturnValue("https://google.com/auth")
     } as any;
 
-    const useCase = new GetGmailAuthUrlUseCase(gmailService);
+    const useCase = new GetGmailAuthUrlUseCase(gmailService
+
+    );
 
     const result = await useCase.execute(new GetGmailAuthUrlInput("user123"));
 
     expect(result.url).toBe("https://google.com/auth");
-    expect(gmailService.generateAuthUrl).toHaveBeenCalledWith("user123");
+    expect(gmailService
+.generateAuthUrl).toHaveBeenCalledWith("user123");
   });
 });

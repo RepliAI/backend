@@ -7,5 +7,6 @@ export class Message {
     public readonly to: string,
     public readonly content: string,
     public readonly date: Date,
+    public readonly threadId?: string,
   ) {}
 }
