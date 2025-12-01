@@ -126,7 +126,11 @@ export class GmailService implements IGmailService {
     }): Promise<string> {
     
         const token = await this.getToken(params.userId);
-    
+
+        if (!token.accessToken || !token.refreshToken) {
+            throw new Error('NO_GMAIL_TOKEN');
+        }
+        
         this.oauth2Client.setCredentials({
             access_token: token.accessToken,
             refresh_token: token.refreshToken,
