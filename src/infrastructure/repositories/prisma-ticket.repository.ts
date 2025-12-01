@@ -74,7 +74,11 @@ export class PrismaTicketRepository implements ITicketRepository {
   async findById(id: string, userId: string): Promise<Ticket | null> {
     const result = await this.prisma.ticket.findFirst({
       where: { id, userId },
-      include: { messages: true },
+      include: {
+        messages: {
+          orderBy: { date: 'asc' }
+        }
+      }
     });
 
     if (!result) return null;
@@ -119,6 +123,7 @@ export class PrismaTicketRepository implements ITicketRepository {
         id: message.id,
         ticketId,
         gmailId: message.gmailId,
+        threadId: message.threadId,
         from: message.from,
         to: message.to,
         content: message.content,
@@ -150,5 +155,19 @@ export class PrismaTicketRepository implements ITicketRepository {
       where: { id: ticketId },
       data: { status },
     });
+  }
+  async findByThreadId(threadId: string): Promise<Ticket | null> {
+    const msg = await this.prisma.message.findFirst({
+      where: { threadId },
+      include: {
+        ticket: {
+          include: { messages: true },
+        },
+      },
+    });
+  
+    if (!msg) return null;
+  
+    return PrismaTicketMapper.toDomain(msg.ticket);
   }
 }

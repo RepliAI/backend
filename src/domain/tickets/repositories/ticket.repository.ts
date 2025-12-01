@@ -28,4 +28,5 @@ export interface ITicketRepository {
   findMessageByGmailId(gmailId: string): Promise<Message | null>;
   addMessage(ticketId: string, message: Message): Promise<void>
   updateStatus(ticketId: string, status: string): Promise<void>;
+  findByThreadId(threadId: string): Promise<Ticket | null>;
 }

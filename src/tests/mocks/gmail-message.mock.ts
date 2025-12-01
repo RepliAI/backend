@@ -10,5 +10,6 @@ export function createMockGmailEmail(
     subject: overrides.subject ?? "Sujet par défaut",
     date: overrides.date ?? new Date("2024-01-01T10:00:00Z"),
     content: overrides.content ?? "Contenu par défaut",
+    threadId: overrides.threadId ?? "threadId",
   };
 }

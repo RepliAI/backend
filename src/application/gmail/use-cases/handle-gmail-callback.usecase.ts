@@ -1,13 +1,13 @@
 import { Inject } from '@nestjs/common';
 
-import { IGmailService } from 'src/domain/gmail/service/gmail.service';
+import { IGMAIL_SERVICE, IGmailService } from 'src/domain/gmail/service/gmail.service';
 
 import { HandleGmailCallbackInput } from '../dto/handle-gmail-callback.dto';
 
 
 export class HandleGmailCallbackUseCase {
   constructor(
-    @Inject('IGmailService')
+    @Inject(IGMAIL_SERVICE)
     private readonly gmailService: IGmailService,
   ) {}
 

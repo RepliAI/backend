@@ -8,9 +8,11 @@ import { GenerateAiReplyUseCase } from './use-cases/generate-ai-reply.usecase';
 import { CreateTicketUseCase } from './use-cases/create-ticket.usecase';
 import { AddMessageToTicketUseCase } from './use-cases/add-message.usecase';
 import { UpdateTicketStatusUseCase } from './use-cases/update-status.usecase';
+import { GmailModule } from 'src/infrastructure/integrations/gmail/gmail.module';
 
 @Module({
   imports: [
+    GmailModule,
     TicketsInfrastructureModule,
     OpenAiModule,
     IdGeneratorModule

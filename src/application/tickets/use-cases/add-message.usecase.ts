@@ -3,6 +3,7 @@ import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nest
 import { ITicketRepository, TICKET_REPOSITORY } from 'src/domain/tickets/repositories/ticket.repository';
 import { Message } from 'src/domain/tickets/entities/message.entity';
 import { ID_GENERATOR, IIdGenerator } from 'src/domain/shared/services/id-generator.service';
+import { IGMAIL_SERVICE, IGmailService } from 'src/domain/gmail/service/gmail.service';
 
 import { AddMessageInput } from '../dto/add-message.input';
 
@@ -14,6 +15,9 @@ export class AddMessageToTicketUseCase {
 
     @Inject(ID_GENERATOR)
     private readonly idGenerator: IIdGenerator,
+
+    @Inject(IGMAIL_SERVICE)
+    private readonly gmailService: IGmailService,
   ) {}
 
   async execute(input: AddMessageInput): Promise<Message> {
@@ -27,6 +31,23 @@ export class AddMessageToTicketUseCase {
       throw new ForbiddenException('You do not own this ticket.');
     }
 
+    const lastMessage = ticket.messages.at(-1);
+
+    if (!lastMessage) {
+      throw new ForbiddenException('Cannot reply: ticket has no existing messages.');
+    }
+    if (!lastMessage.gmailId) {
+      throw new ForbiddenException('Cannot reply: missing gmailId of the last message.');
+    }
+
+    const sentGmailId = await this.gmailService.sendReply({
+      userId: input.userId,
+      threadId: lastMessage.gmailId,
+      to: lastMessage.from,    
+      subject: ticket.subject,
+      content: input.content,
+    });
+
     const message = new Message(
       this.idGenerator.generate(),
       ticket.id,
@@ -36,8 +57,6 @@ export class AddMessageToTicketUseCase {
       input.content,
       new Date(),
     );
-
-    ticket.addMessage(message);
 
     await this.ticketRepository.addMessage(ticket.id, message); 
     ticket.markPending();

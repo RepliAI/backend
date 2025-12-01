@@ -11,5 +11,6 @@ export function createTicketRepoMock(): jest.Mocked<ITicketRepository> {
     findMessageByGmailId: jest.fn(),
     addMessage: jest.fn(),
     updateStatus: jest.fn(),
+    findByThreadId: jest.fn(),
   };
 }
