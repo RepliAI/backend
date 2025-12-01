@@ -7,6 +7,7 @@ import { IdGeneratorModule } from './infrastructure/shared/id-generator/id-gener
 import { OpenAiModule } from './infrastructure/integrations/openai/openai.module';
 import { StatsHttpModule } from './interfaces/http/stats/stats-http.module';
 import { GmailHttpModule } from './interfaces/http/gmail/gmail-http.module';
+import { CronModule } from './infrastructure/cron/cron.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { GmailHttpModule } from './interfaces/http/gmail/gmail-http.module';
     OpenAiModule,
     StatsHttpModule,
     GmailHttpModule,
+    CronModule,
   ],
 })
 export class AppModule {}

@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { google } from 'googleapis';
-import { PrismaService } from '../../prisma/prisma.service';
+
 import { IGmailService, GmailMessage } from 'src/domain/gmail/service/gmail.service';
+
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class GmailService implements IGmailService {
@@ -212,7 +214,11 @@ export class GmailService implements IGmailService {
         const base64 = Buffer.from(value, 'utf8').toString('base64');
         return `=?UTF-8?B?${base64}?=`;
     }
-      
+    async getAllConnectedUsers() {
+        return this.prisma.gmailToken.findMany({
+          select: { userId: true },
+        });
+    }  
 
 }
 

@@ -15,4 +15,5 @@ export interface IGmailService {
     handleOAuthCallback(code: string, stateUserId: string): Promise<void>;
     fetchRecentMessages(userId: string, maxResults?: number): Promise<GmailMessage[]>;
     sendReply(params: {userId: string, threadId: string, to: string, subject: string, content: string}): Promise<string>;
+    getAllConnectedUsers(): Promise<{ userId: string }[]>;
 }
