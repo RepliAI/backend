@@ -9,6 +9,9 @@ import { PrismaTicketRepository } from 'src/infrastructure/repositories/prisma-t
 import { ID_GENERATOR, IIdGenerator } from 'src/domain/shared/services/id-generator.service';
 import { UuidGeneratorService } from 'src/infrastructure/shared/id-generator/uuid-id-generator.service';
 import { IGMAIL_SERVICE } from 'src/domain/gmail/service/gmail.service';
+import { GMAIL_TOKEN_REPOSITORY } from 'src/domain/gmail/repositories/gmail-token.repository';
+import { PrismaGmailTokenRepository } from 'src/infrastructure/gmail/prisma-gmail-token.repository';
+import { GetGmailStatusUseCase } from 'src/application/gmail/use-cases/get-gmail-status.usecase';
 
 import { GmailController } from './gmail.controller';
 
@@ -18,6 +21,11 @@ import { GmailController } from './gmail.controller';
   controllers: [GmailController],
 
   providers: [
+    {
+      provide: GMAIL_TOKEN_REPOSITORY,
+      useClass: PrismaGmailTokenRepository,
+    },
+    GetGmailStatusUseCase,
     {
       provide: TICKET_REPOSITORY,
       useClass: PrismaTicketRepository,

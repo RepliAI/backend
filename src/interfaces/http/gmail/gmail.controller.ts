@@ -1,4 +1,5 @@
-import { Controller, Get, Query, UseGuards, Post } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, Post, Res } from '@nestjs/common';
+import { Response } from 'express';
 
 import { ImportEmailsUseCase } from 'src/application/gmail/use-cases/import-emails.usecase';
 import { GetGmailAuthUrlUseCase } from 'src/application/gmail/use-cases/get-gmail-auth-url.usecase';
@@ -9,6 +10,7 @@ import { ImportEmailsInput } from 'src/application/gmail/dto/import-email.dto';
 
 import { JwtAuthGuard } from '../auth/security/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { GetGmailStatusUseCase } from 'src/application/gmail/use-cases/get-gmail-status.usecase';
 
 @Controller('gmail')
 export class GmailController {
@@ -16,6 +18,7 @@ export class GmailController {
         private readonly getAuthUrlUseCase: GetGmailAuthUrlUseCase,
         private readonly handleCallbackUseCase: HandleGmailCallbackUseCase,
         private readonly importEmailsUseCase: ImportEmailsUseCase,
+        private readonly getGmailStatusUseCase: GetGmailStatusUseCase,
     ) { }
 
     @UseGuards(JwtAuthGuard)
@@ -26,10 +29,14 @@ export class GmailController {
         return { url: url.url };
     }
 
-    @Get('callback')
-    async callback(@Query('code') code: string, @Query('state') state: string) {
-        await this.handleCallbackUseCase.execute(new HandleGmailCallbackInput(code, state));
-        return { success: true };
+    @Get("callback")
+    async callback(@Query("code") code: string, @Query("state") userId: string, @Res() res: Response) {
+        
+        await this.handleCallbackUseCase.execute(
+            new HandleGmailCallbackInput(code, userId)
+        );
+
+        res.redirect(`${process.env.FRONTEND_URL}/gmail/connected`);
     }
 
     @UseGuards(JwtAuthGuard)
@@ -40,5 +47,12 @@ export class GmailController {
         );
 
         return { imported: out.imported };
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get("status")
+    async status(@CurrentUser() user: any) {
+        const result = await this.getGmailStatusUseCase.execute(user.userId);
+        return result;
     }
 }

@@ -106,5 +106,4 @@ export class TicketsController {
     const updated = await this.updateTicketStatus.execute(id, user.id, body.status);
     return TicketResponseDto.fromDomain(updated);
   }
-
 }
