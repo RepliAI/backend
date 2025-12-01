@@ -1,20 +1,24 @@
-import { AddMessageToTicketUseCase } from '../add-message.usecase';
 import { createTicketRepoMock } from 'src/tests/mocks/ticket-repo.mock';
 import { createIdGeneratorMock } from 'src/tests/mocks/id-generalor.mock';
-import { AddMessageInput } from '../../dto/add-message.input';
 import { Ticket } from 'src/domain/tickets/entities/ticket.entity';
 import { Message } from 'src/domain/tickets/entities/message.entity';
+import { createGmailServiceMock } from 'src/tests/mocks/gmail-service.mock';
+
+import { AddMessageInput } from '../../dto/add-message.input';
+import { AddMessageToTicketUseCase } from '../add-message.usecase';
 
 describe('AddMessageToTicketUseCase', () => {
   let useCase: AddMessageToTicketUseCase;
   let ticketRepository: ReturnType<typeof createTicketRepoMock>;
   let idGenerator: ReturnType<typeof createIdGeneratorMock>;
+  let gmailServiceMock: ReturnType<typeof createGmailServiceMock>;
 
   beforeEach(() => {
     ticketRepository = createTicketRepoMock();
     idGenerator = createIdGeneratorMock();
+    gmailServiceMock = createGmailServiceMock()
 
-    useCase = new AddMessageToTicketUseCase(ticketRepository, idGenerator);
+    useCase = new AddMessageToTicketUseCase(ticketRepository, idGenerator, gmailServiceMock);
   });
 
   it('should throw if ticket does not exist', async () => {

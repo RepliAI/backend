@@ -40,13 +40,19 @@ export class AddMessageToTicketUseCase {
       throw new ForbiddenException('Cannot reply: missing gmailId of the last message.');
     }
 
-    const sentGmailId = await this.gmailService.sendReply({
-      userId: input.userId,
-      threadId: lastMessage.gmailId,
-      to: lastMessage.from,    
-      subject: ticket.subject,
-      content: input.content,
-    });
+    try {
+      await this.gmailService.sendReply({
+        userId: input.userId,
+        threadId: lastMessage.threadId,
+        to: lastMessage.from,
+        subject: ticket.subject,
+        content: input.content,
+      });
+    } catch (err) {
+      throw new ForbiddenException(
+        'GMAIL_NOT_CONNECTED'
+      );
+    }
 
     const message = new Message(
       this.idGenerator.generate(),
