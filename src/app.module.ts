@@ -8,6 +8,7 @@ import { OpenAiModule } from './infrastructure/integrations/openai/openai.module
 import { StatsHttpModule } from './interfaces/http/stats/stats-http.module';
 import { GmailHttpModule } from './interfaces/http/gmail/gmail-http.module';
 import { CronModule } from './infrastructure/cron/cron.module';
+import { UserPreferencesModule } from './interfaces/http/user-preferences/user-preferences-http';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { CronModule } from './infrastructure/cron/cron.module';
     StatsHttpModule,
     GmailHttpModule,
     CronModule,
+    UserPreferencesModule
   ],
 })
 export class AppModule {}

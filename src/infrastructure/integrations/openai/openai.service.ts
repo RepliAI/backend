@@ -11,12 +11,12 @@ export class OpenAiService {
     });
   }
 
-  async generateReply(prompt: string): Promise<string> {
+  async generateReply({ system, user }: { system: string; user: string }): Promise<string> {
     const completion = await this.client.chat.completions.create({
       model: "gpt-4.1-mini",
       messages: [
-        { role: "system", content: "Tu es un assistant support professionnel." },
-        { role: "user", content: prompt },
+        { role: "system", content: system },
+        { role: "user", content: user },
       ],
     });
 
