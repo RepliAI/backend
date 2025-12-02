@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
+
 import { RegisterUserUseCase } from 'src/application/users/use-cases/register-user.usecase';
 import { PrismaUserRepository } from 'src/infrastructure/repositories/prisma-user.repository';
 import { USER_REPOSITORY } from 'src/domain/users/repositories/user.repository';
@@ -7,6 +8,7 @@ import { LoginUserUseCase } from 'src/application/users/use-cases/login-user.use
 import { RefreshTokensUseCase } from 'src/application/users/use-cases/refresh-token.usecase';
 import { JwtAuthTokenService } from 'src/infrastructure/services/jwt-auth-token.service';
 import { AUTH_TOKEN_SERVICE } from 'src/application/auth/services/auth-token.service';
+
 import { AuthController } from './controllers/auth.controller';
 import { JwtStrategy } from './security/jwt.strategy';
 import { JwtAuthGuard } from './security/jwt-auth.guard';
@@ -33,6 +35,10 @@ import { JwtAuthGuard } from './security/jwt-auth.guard';
       provide: AUTH_TOKEN_SERVICE,
       useClass: JwtAuthTokenService,
     },
+  ],
+  exports: [
+    USER_REPOSITORY,
+    PrismaUserRepository,
   ],
 })
 export class AuthModule {}
