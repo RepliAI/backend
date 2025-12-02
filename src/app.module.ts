@@ -9,6 +9,7 @@ import { StatsHttpModule } from './interfaces/http/stats/stats-http.module';
 import { GmailHttpModule } from './interfaces/http/gmail/gmail-http.module';
 import { CronModule } from './infrastructure/cron/cron.module';
 import { UserPreferencesModule } from './interfaces/http/user-preferences/user-preferences-http';
+import { BillingHttpModule } from './interfaces/http/billing/billing-http.module';
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { UserPreferencesModule } from './interfaces/http/user-preferences/user-p
     StatsHttpModule,
     GmailHttpModule,
     CronModule,
-    UserPreferencesModule
+    UserPreferencesModule,
+    BillingHttpModule
   ],
 })
 export class AppModule {}
