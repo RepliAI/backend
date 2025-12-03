@@ -77,7 +77,7 @@ model Subscription {
   userId          String   @unique
   plan            String   // "FREE" | "PRO" | "BUSINESS"
   stripeCustomerId String?
-  stripeSubId      String?
+  stripeSubId      String? @unique
   status           String   // "active" | "trialing" | "canceled" | "incomplete"
   currentPeriodEnd DateTime?
   createdAt        DateTime @default(now())

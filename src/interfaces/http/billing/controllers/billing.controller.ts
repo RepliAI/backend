@@ -17,6 +17,12 @@ export class BillingController {
     private readonly cancelSubscriptionUseCase: CancelSubscriptionUseCase,
   ) {}
 
+  @Post("free")
+  @UseGuards(JwtAuthGuard)
+  async goFree(@CurrentUser() user: any) {
+    await this.cancelSubscriptionUseCase.execute(user.id);
+    return { status: "ok", message: "You are now on the free plan" };
+  }
   @Post('checkout')
   async createCheckoutSession(
     @CurrentUser() user: any,
@@ -25,8 +31,7 @@ export class BillingController {
     return this.createCheckout.execute({
       userId: user.userId,
       priceId: dto.priceId,
-      successUrl: `${process.env.FRONTEND_URL}/billing/success`,
-      cancelUrl: `${process.env.FRONTEND_URL}/billing/cancel`,
+      plan: dto.plan,
     });
   }
 
