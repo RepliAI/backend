@@ -18,8 +18,7 @@ export class CreateCheckoutSessionUseCase {
   async execute(input: {
     userId: string;
     priceId: string;
-    successUrl: string;
-    cancelUrl: string;
+    plan:string;
   }) {
     const user = await this.users.findById(input.userId);
     if (!user) {

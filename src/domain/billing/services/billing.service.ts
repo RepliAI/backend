@@ -4,8 +4,6 @@ export interface BillingService {
     params: {
       userId: string;
       priceId: string;
-      successUrl: string;
-      cancelUrl: string;
     }): Promise<{ url: string }>;
 
   getActiveSubscription(userId: string): Promise<{
