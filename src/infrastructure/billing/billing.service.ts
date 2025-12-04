@@ -20,8 +20,7 @@ export class BillingServiceImpl implements BillingService {
     params: {
       userId: string;
       priceId: string;
-      successUrl: string;
-      cancelUrl: string;
+      plan: string;
   }): Promise<{ url: string }> {
     return this.payment.createCheckoutSession(userEmail, params);
   }

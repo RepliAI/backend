@@ -5,6 +5,7 @@ export interface ISubscriptionRepository {
   create(data: {
     userId: string;
     plan: string;
+    nextPlan?: string | null;
     stripeCustomerId?: string | null;
   }): Promise<any>;
 
@@ -15,6 +16,7 @@ export interface ISubscriptionRepository {
       stripeSubId?: string;
       status?: string;
       plan?: string;
+      nextPlan?: string | null;
       currentPeriodEnd?: Date;
     }
   ): Promise<any>;
@@ -39,5 +41,6 @@ export interface ISubscriptionRepository {
     status: string;
     currentPeriodEnd: Date;
   }): Promise<any>;
+  updateNextPlan(id: string, nextPlan: string | null): Promise<any>;
   updatePlanByStripeSubId(stripeSubId: string, plan: string): Promise<any>;
 }
