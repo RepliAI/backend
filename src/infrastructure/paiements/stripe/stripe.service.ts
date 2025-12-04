@@ -33,9 +33,13 @@ export class StripePaymentService implements BillingPaymentProvider {
           quantity: 1,
         },
       ],
+      metadata: {
+        plan: params.plan,
+      },
       subscription_data: {
         metadata: {
-          plan: params.plan
+          plan: params.plan,
+          priceId: params.priceId,
         },
       },
       success_url: `${process.env.STRIPE_REDIRECT_URI}/success?session_id={CHECKOUT_SESSION_ID}`,
@@ -47,5 +51,47 @@ export class StripePaymentService implements BillingPaymentProvider {
 
   async cancelSubscription(subscriptionId: string): Promise<void> {
     await this.stripe.subscriptions.cancel(subscriptionId);
+  }
+
+  async schedulePlanChange(stripeSubId: string, newPriceId: string) {
+    const sub = await this.stripe.subscriptions.retrieve(stripeSubId, {
+      expand: ["items.data.price"],
+    });
+  
+    const items = sub.items.data;
+  
+    if (items.length === 0) {
+      throw new Error(`No subscription items found on subscription ${stripeSubId}`);
+    }
+  
+    const mainItem = items[0];
+  
+    const updatedItems: any[] = [
+      {
+        id: mainItem.id,
+        price: newPriceId,
+        quantity: 1,
+      },
+    ];
+  
+    if (items.length > 1) {
+      for (const extra of items.slice(1)) {
+        updatedItems.push({
+          id: extra.id,
+          deleted: true,
+        });
+      }
+    }
+  
+    return this.stripe.subscriptions.update(stripeSubId, {
+      proration_behavior: "none",
+      items: updatedItems,
+    });
+  }
+
+  async scheduleCancellation(stripeSubId: string) {
+    return this.stripe.subscriptions.update(stripeSubId, {
+      cancel_at_period_end: true,
+    });
   }
 }

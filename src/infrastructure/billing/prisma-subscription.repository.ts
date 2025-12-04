@@ -23,12 +23,14 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
   async create(data: {
     userId: string;
     plan: string;
+    nextPlan?: string | null;
     stripeCustomerId?: string | null;
   }) {
     return this.prisma.subscription.create({
       data: {
         userId: data.userId,
         plan: data.plan,
+        nextPlan: data.nextPlan ?? null,
         stripeCustomerId: data.stripeCustomerId ?? null,
         status: "active",
         currentPeriodEnd: new Date(),
@@ -47,6 +49,7 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
     stripeSubId?: string;
     status?: string;
     plan?: string;
+    nextPlan?: string | null;
     currentPeriodEnd?: Date;
   }) {
     return this.prisma.subscription.update({
@@ -74,6 +77,13 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
     return this.prisma.subscription.update({
       where: { stripeSubId },
       data: { plan },
+    });
+  } 
+  
+  async updateNextPlan(id: string, nextPlan: string | null) {
+    return this.prisma.subscription.update({
+      where: { id },
+      data: { nextPlan },
     });
   }  
 

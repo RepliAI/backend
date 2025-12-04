@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,51 +8,49 @@ datasource db {
 }
 
 model User {
-  id               String      @id @default(cuid())
-  email            String      @unique
+  id               String           @id @default(cuid())
+  email            String           @unique
   passwordHash     String
   refreshTokenHash String?
+  createdAt        DateTime         @default(now())
   gmailToken       GmailToken?
   subscription     Subscription?
   tickets          Ticket[]
   preferences      UserPreferences?
-  createdAt        DateTime    @default(now())
 }
 
 model UserPreferences {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  tone        String   @default("neutral")
-  signature   String   @default("")
-  autoImport  Boolean  @default(false)
-  autoAiSend  Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user User @relation(fields: [userId], references: [id])
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  tone       String   @default("neutral")
+  signature  String   @default("")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  autoAiSend Boolean  @default(false)
+  autoImport Boolean  @default(false)
+  user       User     @relation(fields: [userId], references: [id])
 }
 
 model Ticket {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   subject   String
   status    String
-  createdAt DateTime @default(now())
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  messages Message[]
+  createdAt DateTime  @default(now())
+  userId    String
+  messages  Message[]
+  user      User      @relation(fields: [userId], references: [id])
 }
 
 model Message {
   id       String   @id @default(cuid())
   ticketId String
-  ticket   Ticket   @relation(fields: [ticketId], references: [id])
-  gmailId  String?  @unique
-  threadId  String? 
   from     String
   to       String
   content  String
   date     DateTime
+  gmailId  String?  @unique
+  threadId String?
+  ticket   Ticket   @relation(fields: [ticketId], references: [id])
 }
 
 model GmailToken {
@@ -68,20 +60,19 @@ model GmailToken {
   refreshToken String
   expiryDate   DateTime
   createdAt    DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id])
+  user         User     @relation(fields: [userId], references: [id])
 }
 
 model Subscription {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  plan            String   // "FREE" | "PRO" | "BUSINESS"
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  plan             String
   stripeCustomerId String?
-  stripeSubId      String? @unique
-  status           String   // "active" | "trialing" | "canceled" | "incomplete"
+  stripeSubId      String?   @unique
+  status           String
   currentPeriodEnd DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id])
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  nextPlan         String?
+  user             User      @relation(fields: [userId], references: [id])
 }
