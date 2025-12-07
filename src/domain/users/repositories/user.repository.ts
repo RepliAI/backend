@@ -7,4 +7,5 @@ export interface IUserRepository {
   create(user: User): Promise<void>;
   findById(id: string): Promise<User | null>;
   updateRefreshTokenHash(userId: string, hash: string | null): Promise<void>;
+  updatePassword(id: string, hashedPassword: string): Promise<void>;
 }
