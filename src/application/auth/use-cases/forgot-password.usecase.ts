@@ -1,9 +1,10 @@
-import { Inject, NotFoundException } from "@nestjs/common";
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 
 import { MailerService } from "src/infrastructure/mailer/mailer.service";
 import { IPasswordResetService, PASSWORD_RESET_SERVICE } from "src/domain/auth/services/password-reset.service";
 import { IUserRepository, USER_REPOSITORY } from "src/domain/users/repositories/user.repository";
 
+@Injectable()
 export class ForgotPasswordUseCase {
   constructor(
     @Inject(USER_REPOSITORY)

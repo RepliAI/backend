@@ -1,9 +1,10 @@
-import { Inject, BadRequestException } from "@nestjs/common";
+import { Inject, Injectable, BadRequestException } from "@nestjs/common";
 import * as bcrypt from 'bcrypt';
 
 import { IPasswordResetService, PASSWORD_RESET_SERVICE } from "src/domain/auth/services/password-reset.service";
 import { IUserRepository, USER_REPOSITORY } from "src/domain/users/repositories/user.repository";
 
+@Injectable()
 export class ResetPasswordUseCase {
   constructor(
     @Inject(USER_REPOSITORY)

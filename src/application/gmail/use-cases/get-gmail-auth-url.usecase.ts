@@ -1,9 +1,10 @@
-import { Inject } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 
 import { IGMAIL_SERVICE, IGmailService } from 'src/domain/gmail/service/gmail.service';
 
 import { GetGmailAuthUrlInput, GetGmailAuthUrlOutput } from '../dto/get-gmail-url.dto';
 
+@Injectable()
 export class GetGmailAuthUrlUseCase {
   constructor(
     @Inject(IGMAIL_SERVICE)

@@ -1,9 +1,10 @@
 import * as bcrypt from 'bcrypt';
-import { Inject, UnauthorizedException } from "@nestjs/common";
+import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { AUTH_TOKEN_SERVICE, IAuthTokenService } from "src/application/auth/services/auth-token.service";
 import { IUserRepository, USER_REPOSITORY } from "src/domain/users/repositories/user.repository"
 import { LoginUserInput } from "../dto/login-user.input";
 
+@Injectable()
 export class LoginUserUseCase {
     constructor(
         @Inject(USER_REPOSITORY)
@@ -37,3 +38,4 @@ export class LoginUserUseCase {
 
     }
 }
+

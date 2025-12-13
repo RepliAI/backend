@@ -2,7 +2,7 @@ import * as bcrypt from 'bcrypt';
 import { UnauthorizedException } from '@nestjs/common';
 import { createUserRepoMock } from 'src/tests/mocks/user-repo.mock';
 import { createAuthTokenServiceMock } from 'src/tests/mocks/auth-token-service.mock';
-import { LoginUserUseCase } from '../login-user.usercase';
+import { LoginUserUseCase } from '../login-user.usecase';
 
 describe('LoginUserUseCase', () => {
   let useCase: LoginUserUseCase;

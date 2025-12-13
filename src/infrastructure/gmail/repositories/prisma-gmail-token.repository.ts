@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { PrismaService } from "../prisma/prisma.service";
+import { PrismaService } from "../../prisma/prisma.service";
 import { IGmailTokenRepository } from "src/domain/gmail/repositories/gmail-token.repository";
 
 @Injectable()
@@ -13,3 +13,4 @@ export class PrismaGmailTokenRepository implements IGmailTokenRepository {
     return !!token;
   }
 }
+

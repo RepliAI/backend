@@ -1,4 +1,4 @@
-import { Inject } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 
 import { ITicketRepository, TICKET_REPOSITORY } from 'src/domain/tickets/repositories/ticket.repository';
 import { Message } from 'src/domain/tickets/entities/message.entity';
@@ -9,6 +9,7 @@ import { IIdGenerator, ID_GENERATOR } from 'src/domain/shared/services/id-genera
 
 import { ImportEmailsInput, ImportEmailsOutput } from '../dto/import-email.dto';
 
+@Injectable()
 export class ImportEmailsUseCase {
   constructor(
     @Inject(IGMAIL_SERVICE)

@@ -1,4 +1,4 @@
-import { Inject } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
 import { IUserRepository, USER_REPOSITORY } from 'src/domain/users/repositories/user.repository';
@@ -6,6 +6,7 @@ import { RegisterUserInput } from '../dto/register-user.input';
 import { User } from 'src/domain/users/entities/user.entity';
 import { UserAlreadyExistsError } from 'src/domain/shared/errors/user-already-exist.errors';
 
+@Injectable()
 export class RegisterUserUseCase {
   constructor(
     @Inject(USER_REPOSITORY)
