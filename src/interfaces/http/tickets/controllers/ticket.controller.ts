@@ -17,6 +17,7 @@ import { ListTicketsQueryDto } from '../dto/list-tickets-query.dto';
 import { ListTicketsResponseDto } from '../dto/list-tickets-response.dto';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { CurrentUser as CurrentUserType } from '../../shared/types/current-user.interface';
+import { ListTicketsInput } from 'src/application/tickets/dto/list-ticket.input';
 
 @UseGuards(JwtAuthGuard)
 @Controller('tickets')
@@ -35,15 +36,15 @@ export class TicketsController {
     @UserId() userId: string,
     @Query() query: ListTicketsQueryDto,
   ): Promise<ListTicketsResponseDto> {
-    const result = await this.listTickets.execute({
-      userId,
-      status: query.status,
-      search: query.search,
-      page: query.page,
-      pageSize: query.pageSize,
-      from: query.from ? new Date(query.from) : undefined,
-      to: query.to ? new Date(query.to) : undefined,
-    });
+    const input = new ListTicketsInput();
+    input.userId = userId;
+    input.status = query.status;
+    input.search = query.search;
+    input.page = query.page;
+    input.pageSize = query.pageSize;
+    input.from = query.from ? new Date(query.from) : undefined;
+    input.to = query.to ? new Date(query.to) : undefined;
+    const result = await this.listTickets.execute(input);
 
     return {
       items: result.items.map(TicketResponseDto.fromDomain),
@@ -76,9 +77,11 @@ export class TicketsController {
     @UserId() userId: string,
     @Body() dto: CreateTicketDto,
   ): Promise<TicketResponseDto> {
-    const ticket = await this.createTicket.execute(
-      new CreateTicketInput(userId, dto.subject, dto.content),
-    );
+    const input = new CreateTicketInput();
+    input.userId = userId;
+    input.subject = dto.subject;
+    input.content = dto.content;
+    const ticket = await this.createTicket.execute(input);
 
     return TicketResponseDto.fromDomain(ticket);
   }

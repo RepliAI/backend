@@ -1,6 +1,11 @@
+import { IsString, IsNotEmpty } from 'class-validator';
+
 export class HandleGmailCallbackInput {
-  constructor(
-    public readonly code: string,
-    public readonly stateUserId: string,
-  ) {}
+  @IsString()
+  @IsNotEmpty()
+  code: string;
+
+  @IsString()
+  @IsNotEmpty()
+  stateUserId: string;
 }

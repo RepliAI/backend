@@ -1,8 +1,17 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable } from '@nestjs/common';
 
-import { BILLING_PAYMENT_PROVIDER, BillingPaymentProvider } from "src/domain/billing/repositories/billing-payment.provider";
-import { SUBSCRIPTION_REPOSITORY, ISubscriptionRepository } from "src/domain/billing/repositories/subscription.repository";
-import { IUserRepository, USER_REPOSITORY } from "src/domain/users/repositories/user.repository";
+import {
+  BILLING_PAYMENT_PROVIDER,
+  BillingPaymentProvider,
+} from 'src/domain/billing/repositories/billing-payment.provider';
+import {
+  SUBSCRIPTION_REPOSITORY,
+  ISubscriptionRepository,
+} from 'src/domain/billing/repositories/subscription.repository';
+import {
+  IUserRepository,
+  USER_REPOSITORY,
+} from 'src/domain/users/repositories/user.repository';
 
 @Injectable()
 export class CreateCheckoutSessionUseCase {
@@ -15,22 +24,18 @@ export class CreateCheckoutSessionUseCase {
     private readonly userRepository: IUserRepository,
   ) {}
 
-  async execute(params: {
-    userId: string;
-    priceId: string;
-    plan: string;
-  }) {
+  async execute(params: { userId: string; priceId: string; plan: string }) {
     const { userId, priceId, plan } = params;
 
     const user = await this.userRepository.findById(userId);
     if (!user) {
-      throw new Error("User not found");
+      throw new Error('User not found');
     }
 
     const userEmail = user.email;
     const existing = await this.subscriptionRepository.findByUserId(userId);
 
-    if (!existing || existing.plan === "free") {
+    if (!existing || existing.plan === 'free') {
       return this.paymentProvider.createCheckoutSession(userEmail, {
         userId,
         priceId,
@@ -38,15 +43,18 @@ export class CreateCheckoutSessionUseCase {
       });
     }
 
-    if (existing.plan !== plan && plan !== "free") {
-      await this.paymentProvider.schedulePlanChange(existing.stripeSubId!, priceId);
+    if (existing.plan !== plan && plan !== 'free') {
+      await this.paymentProvider.schedulePlanChange(
+        existing.stripeSubId!,
+        priceId,
+      );
       await this.subscriptionRepository.updateNextPlan(existing.id, plan);
       return { url: null };
     }
 
-    if (plan === "free") {
+    if (plan === 'free') {
       await this.paymentProvider.scheduleCancellation(existing.stripeSubId!);
-      await this.subscriptionRepository.updateNextPlan(existing.id, "free");
+      await this.subscriptionRepository.updateNextPlan(existing.id, 'free');
       return { url: null };
     }
   }

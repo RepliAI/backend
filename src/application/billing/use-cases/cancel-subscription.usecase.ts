@@ -1,7 +1,13 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable } from '@nestjs/common';
 
-import { SUBSCRIPTION_REPOSITORY, ISubscriptionRepository } from "src/domain/billing/repositories/subscription.repository";
-import { BILLING_PAYMENT_PROVIDER, BillingPaymentProvider } from "src/domain/billing/repositories/billing-payment.provider";
+import {
+  SUBSCRIPTION_REPOSITORY,
+  ISubscriptionRepository,
+} from 'src/domain/billing/repositories/subscription.repository';
+import {
+  BILLING_PAYMENT_PROVIDER,
+  BillingPaymentProvider,
+} from 'src/domain/billing/repositories/billing-payment.provider';
 
 @Injectable()
 export class CancelSubscriptionUseCase {
@@ -22,8 +28,8 @@ export class CancelSubscriptionUseCase {
     await this.payment.cancelSubscription(subscription.stripeSubId);
 
     await this.subscriptions.updateSubscription(subscription.id, {
-      status: "canceled",
-      plan: "free",
+      status: 'canceled',
+      plan: 'free',
       stripeSubId: null,
       currentPeriodEnd: null,
     });

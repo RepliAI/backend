@@ -1,13 +1,13 @@
-import { Module } from "@nestjs/common";
+import { Module } from '@nestjs/common';
 
-import { PrismaModule } from "src/infrastructure/prisma/prisma.module";
-import { AuthModule } from "src/interfaces/http/auth/auth.module";
-import { BillingInfrastructureModule } from "src/infrastructure/billing/billing-infrastructure.module";
+import { PrismaModule } from 'src/infrastructure/prisma/prisma.module';
+import { AuthModule } from 'src/interfaces/http/auth/auth.module';
+import { BillingInfrastructureModule } from 'src/infrastructure/billing/billing-infrastructure.module';
 
-import { CreateCheckoutSessionUseCase } from "./use-cases/createCheckoutSession.usecase";
-import { GetSubscriptionUseCase } from "./use-cases/get-subscription.usecase";
-import { CancelSubscriptionUseCase } from "./use-cases/cancel-subscription.usecase";
-import { ProcessStripeWebhookUseCase } from "./use-cases/process-stripe-webhook.usecase";
+import { CreateCheckoutSessionUseCase } from './use-cases/createCheckoutSession.usecase';
+import { GetSubscriptionUseCase } from './use-cases/get-subscription.usecase';
+import { CancelSubscriptionUseCase } from './use-cases/cancel-subscription.usecase';
+import { ProcessStripeWebhookUseCase } from './use-cases/process-stripe-webhook.usecase';
 
 @Module({
   imports: [
@@ -19,13 +19,13 @@ import { ProcessStripeWebhookUseCase } from "./use-cases/process-stripe-webhook.
     CreateCheckoutSessionUseCase,
     GetSubscriptionUseCase,
     CancelSubscriptionUseCase,
-    ProcessStripeWebhookUseCase
+    ProcessStripeWebhookUseCase,
   ],
   exports: [
     CreateCheckoutSessionUseCase,
     GetSubscriptionUseCase,
     CancelSubscriptionUseCase,
-    ProcessStripeWebhookUseCase
+    ProcessStripeWebhookUseCase,
   ],
 })
-export class BillingApplicationModule {}
+export class BillingApplicationModule { }

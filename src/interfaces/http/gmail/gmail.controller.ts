@@ -25,8 +25,10 @@ export class GmailController {
     @UseGuards(JwtAuthGuard)
     @Get('connect')
     async connect(@CurrentUser() user: CurrentUserType): Promise<{ url: string }> {
-        const url = await this.getAuthUrlUseCase.execute(new GetGmailAuthUrlInput(user.userId));
-        return { url: url.url };
+        const input = new GetGmailAuthUrlInput();
+        input.userId = user.userId;
+        const output = await this.getAuthUrlUseCase.execute(input);
+        return { url: output.url };
     }
 
     @Get("callback")
@@ -35,9 +37,10 @@ export class GmailController {
         @Query("state") userId: string,
         @Res() res: Response
     ): Promise<void> {
-        await this.handleCallbackUseCase.execute(
-            new HandleGmailCallbackInput(code, userId)
-        );
+        const input = new HandleGmailCallbackInput();
+        input.code = code;
+        input.stateUserId = userId;
+        await this.handleCallbackUseCase.execute(input);
 
         res.redirect(`${process.env.FRONTEND_URL}/gmail/connected`);
     }
@@ -45,11 +48,11 @@ export class GmailController {
     @UseGuards(JwtAuthGuard)
     @Post('import')
     async import(@CurrentUser() user: CurrentUserType): Promise<{ imported: number }> {
-        const out = await this.importEmailsUseCase.execute(
-            new ImportEmailsInput(user.userId),
-        );
+        const input = new ImportEmailsInput();
+        input.userId = user.userId;
+        const output = await this.importEmailsUseCase.execute(input);
 
-        return { imported: out.imported };
+        return { imported: output.imported };
     }
 
     @UseGuards(JwtAuthGuard)

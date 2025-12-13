@@ -24,7 +24,10 @@ describe('AddMessageToTicketUseCase', () => {
   it('should throw if ticket does not exist', async () => {
     ticketRepository.findById.mockResolvedValue(null);
 
-    const input = new AddMessageInput('t1', 'user1', 'Hello');
+    const input = new AddMessageInput();
+    input.ticketId = 't1';
+    input.userId = 'user1';
+    input.content = 'Hello';
 
     await expect(useCase.execute(input)).rejects.toThrow(
       'Ticket with ID t1 not found.',
@@ -35,7 +38,10 @@ describe('AddMessageToTicketUseCase', () => {
     const ticket = new Ticket('t1', 'otherUser', 'subject', 'open', new Date(), []);
     ticketRepository.findById.mockResolvedValue(ticket);
 
-    const input = new AddMessageInput('t1', 'user1', 'Test message');
+    const input = new AddMessageInput();
+    input.ticketId = 't1';
+    input.userId = 'user1';
+    input.content = 'Test message';
 
     await expect(useCase.execute(input)).rejects.toThrow(
       'You do not own this ticket.',
@@ -55,7 +61,10 @@ describe('AddMessageToTicketUseCase', () => {
     ticketRepository.findById.mockResolvedValue(ticket);
     idGenerator.generate.mockReturnValue('msg123');
 
-    const input = new AddMessageInput('t1', 'user1', 'Hello world');
+    const input = new AddMessageInput();
+    input.ticketId = 't1';
+    input.userId = 'user1';
+    input.content = 'Hello world';
 
     const result = await useCase.execute(input);
 
@@ -83,7 +92,10 @@ describe('AddMessageToTicketUseCase', () => {
     ticketRepository.findById.mockResolvedValue(ticket);
     idGenerator.generate.mockReturnValue('m1');
 
-    const input = new AddMessageInput('t1', 'user1', 'hello');
+    const input = new AddMessageInput();
+    input.ticketId = 't1';
+    input.userId = 'user1';
+    input.content = 'hello';
 
     await useCase.execute(input);
 

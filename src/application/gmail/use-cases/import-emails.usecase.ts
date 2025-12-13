@@ -18,7 +18,7 @@ export class ImportEmailsUseCase {
     private readonly ticketRepository: ITicketRepository,
     @Inject(ID_GENERATOR)
     private readonly idGenerator: IIdGenerator,
-  ) {}
+  ) { }
 
   async execute(input: ImportEmailsInput): Promise<ImportEmailsOutput> {
     const emails = await this.gmailService.fetchRecentMessages(input.userId);
@@ -59,6 +59,8 @@ export class ImportEmailsUseCase {
       count++;
     }
 
-    return new ImportEmailsOutput(count);
+    const output = new ImportEmailsOutput();
+    output.imported = count;
+    return output;
   }
 }

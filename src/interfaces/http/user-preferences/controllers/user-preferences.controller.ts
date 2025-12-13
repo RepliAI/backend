@@ -13,7 +13,7 @@ export class UserPreferencesController {
   constructor(
     private readonly getUserPrefs: GetUserPreferencesUseCase,
     private readonly updateUserPrefs: UpdateUserPreferencesUseCase,
-  ) {}
+  ) { }
   @UseGuards(JwtAuthGuard)
   @Get()
   async get(@CurrentUser() user: CurrentUserType): Promise<unknown> {

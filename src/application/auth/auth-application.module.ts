@@ -8,18 +8,18 @@ import { ForgotPasswordUseCase } from './use-cases/forgot-password.usecase';
 import { ResetPasswordUseCase } from './use-cases/reset-password.usecase';
 
 @Module({
-  imports: [
-    UsersInfrastructureModule,
-    AuthInfrastructureModule,
-    MailerModule,
-  ],
-  providers: [
-    ForgotPasswordUseCase,
-    ResetPasswordUseCase,
-  ],
-  exports: [
-    ForgotPasswordUseCase,
-    ResetPasswordUseCase,
-  ],
+    imports: [
+        UsersInfrastructureModule,
+        AuthInfrastructureModule,
+        MailerModule,
+    ],
+    providers: [
+        ForgotPasswordUseCase,
+        ResetPasswordUseCase,
+    ],
+    exports: [
+        ForgotPasswordUseCase,
+        ResetPasswordUseCase,
+    ],
 })
-export class AuthApplicationModule {}
+export class AuthApplicationModule { }

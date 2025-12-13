@@ -1,4 +1,11 @@
+import { IsString, IsNotEmpty } from 'class-validator';
+
 export class CreateTicketDto {
-    subject: string;
-    content: string;
+  @IsString()
+  @IsNotEmpty()
+  subject: string;
+
+  @IsString()
+  @IsNotEmpty()
+  content: string;
 }

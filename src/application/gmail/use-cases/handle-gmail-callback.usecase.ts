@@ -9,7 +9,7 @@ export class HandleGmailCallbackUseCase {
   constructor(
     @Inject(IGMAIL_SERVICE)
     private readonly gmailService: IGmailService,
-  ) {}
+  ) { }
 
   async execute(input: HandleGmailCallbackInput): Promise<void> {
     await this.gmailService.handleOAuthCallback(

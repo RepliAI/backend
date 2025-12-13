@@ -1,17 +1,43 @@
+import { IsString, IsDate, IsArray, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 import { Ticket } from 'src/domain/tickets/entities/ticket.entity';
 
-export class TicketResponseDto {
+class MessageItemDto {
+  @IsString()
   id: string;
+
+  @IsString()
+  from: string;
+
+  @IsString()
+  to: string;
+
+  @IsString()
+  content: string;
+
+  @IsDate()
+  @Type(() => Date)
+  date: Date;
+}
+
+export class TicketResponseDto {
+  @IsString()
+  id: string;
+
+  @IsString()
   subject: string;
+
+  @IsString()
   status: string;
+
+  @IsDate()
+  @Type(() => Date)
   createdAt: Date;
-  messages: {
-    id: string;
-    from: string;
-    to: string;
-    content: string;
-    date: Date;
-  }[];
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MessageItemDto)
+  messages: MessageItemDto[];
 
   static fromDomain(ticket: Ticket): TicketResponseDto {
     if (!ticket) {

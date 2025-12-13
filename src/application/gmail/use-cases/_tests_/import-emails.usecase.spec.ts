@@ -35,7 +35,9 @@ describe('ImportEmailsUseCase', () => {
       idGenerator,
     );
 
-    const result = await useCase.execute(new ImportEmailsInput('user-123'));
+    const input = new ImportEmailsInput();
+    input.userId = 'user-123';
+    const result = await useCase.execute(input);
 
     expect(result.imported).toBe(1);
     expect(gmailService.fetchRecentMessages).toHaveBeenCalledWith('user-123');
@@ -92,7 +94,9 @@ describe('ImportEmailsUseCase', () => {
       idGenerator,
     );
 
-    const result = await useCase.execute(new ImportEmailsInput('user-123'));
+    const input = new ImportEmailsInput();
+    input.userId = 'user-123';
+    const result = await useCase.execute(input);
 
     expect(result.imported).toBe(0);
     expect(ticketRepo.create).not.toHaveBeenCalled();

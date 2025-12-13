@@ -1,4 +1,11 @@
+import { IsString, IsNotEmpty } from 'class-validator';
+
 export class CreateCheckoutDTO {
-    priceId: string;
-    plan: string;
+  @IsString()
+  @IsNotEmpty()
+  priceId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  plan: string;
 }
