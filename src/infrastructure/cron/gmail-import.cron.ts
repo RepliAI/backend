@@ -1,7 +1,6 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { IGMAIL_SERVICE } from 'src/domain/gmail/service/gmail.service';
-import { ITicketRepository, TICKET_REPOSITORY } from 'src/domain/tickets/repositories/ticket.repository';
 import { ImportEmailsUseCase } from 'src/application/gmail/use-cases/import-emails.usecase';
 
 @Injectable()
@@ -11,7 +10,6 @@ export class GmailImportCron {
   constructor(
     private readonly importEmailsUseCase: ImportEmailsUseCase,
     @Inject(IGMAIL_SERVICE) private readonly gmailService,
-    @Inject(TICKET_REPOSITORY) private readonly ticketRepo: ITicketRepository,
   ) {}
 
   @Cron(CronExpression.EVERY_MINUTE)
