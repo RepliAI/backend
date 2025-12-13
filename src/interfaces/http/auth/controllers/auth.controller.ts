@@ -11,6 +11,9 @@ import { ResetPasswordUseCase } from 'src/application/auth/use-cases/reset-passw
 
 import { LoginRequestDto } from '../dto/login.dto';
 import { RefreshTokenRequestDto } from '../dto/refresh-token.dto';
+import { ForgotPasswordDto } from '../dto/forgot-password.dto';
+import { ResetPasswordDto } from '../dto/reset-password.dto';
+import { SuccessResponse } from '../../shared/types/http-response.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -23,7 +26,7 @@ export class AuthController {
     ) { }
 
     @Post('register')
-    async register(@Body() dto: RegisterUserRequestDto) {
+    async register(@Body() dto: RegisterUserRequestDto): Promise<SuccessResponse<{ message: string }>> {
         const input: RegisterUserInput = {
             email: dto.email,
             password: dto.password,
@@ -31,7 +34,7 @@ export class AuthController {
 
         try {
             await this.registerUserUseCase.execute(input);
-            return { message: 'User created' };
+            return { success: true, data: { message: 'User created' } };
         } catch (error) {
             if (error instanceof UserAlreadyExistsError) {
                 throw new ConflictException(error.message);
@@ -41,7 +44,7 @@ export class AuthController {
     }
 
     @Post('login')
-    async login(@Body() dto: LoginRequestDto) {
+    async login(@Body() dto: LoginRequestDto): Promise<{ accessToken: string; refreshToken: string }> {
         return this.loginUserUseCase.execute({
             email: dto.email,
             password: dto.password,
@@ -49,18 +52,19 @@ export class AuthController {
     }
 
     @Post('refresh')
-    async refresh(@Body() dto: RefreshTokenRequestDto) {
+    async refresh(@Body() dto: RefreshTokenRequestDto): Promise<{ accessToken: string; refreshToken: string }> {
         return this.refreshTokensUseCase.execute(dto.refreshToken);
     }
+
     @Post("forgot-password")
-    async forgotPassword(@Body() body: { email: string }) {
-        await this.forgotPasswordUseCase.execute(body.email);
-        return { success: true }
+    async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<SuccessResponse> {
+        await this.forgotPasswordUseCase.execute(dto.email);
+        return { success: true };
     }
 
     @Post("reset-password")
-    async resetPassword(@Body() body: { token: string; password: string }) {
-        await this.resetPasswordUseCase.execute(body.token, body.password);
-        return { success: true }
+    async resetPassword(@Body() dto: ResetPasswordDto): Promise<SuccessResponse> {
+        await this.resetPasswordUseCase.execute(dto.token, dto.password);
+        return { success: true };
     }
 }

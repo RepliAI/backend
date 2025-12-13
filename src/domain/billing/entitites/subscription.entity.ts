@@ -8,4 +8,4 @@ export class Subscription {
       public readonly stripeSubId: string | null,
       public readonly currentPeriodEnd: Date | null,
     ) {}
-}  
+}

@@ -7,4 +7,4 @@ export class UserPreferences {
         public autoImport: boolean,
         public autoAiSend: boolean,
     ) { }
-}  
+}

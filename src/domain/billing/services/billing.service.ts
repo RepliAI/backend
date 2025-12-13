@@ -15,4 +15,4 @@ export interface BillingService {
   cancelSubscription(userId: string): Promise<void>;
 }
 
-export const BILLING_SERVICE = "BILLING_SERVICE";  
+export const BILLING_SERVICE = "BILLING_SERVICE";

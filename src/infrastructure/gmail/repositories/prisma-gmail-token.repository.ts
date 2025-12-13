@@ -4,13 +4,12 @@ import { IGmailTokenRepository } from "src/domain/gmail/repositories/gmail-token
 
 @Injectable()
 export class PrismaGmailTokenRepository implements IGmailTokenRepository {
-  constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
-  async hasToken(userId: string): Promise<boolean> {
-    const token = await this.prisma.gmailToken.findUnique({
-      where: { userId },
-    });
-    return !!token;
-  }
+    async hasToken(userId: string): Promise<boolean> {
+        const token = await this.prisma.gmailToken.findUnique({
+            where: { userId },
+        });
+        return !!token;
+    }
 }
-

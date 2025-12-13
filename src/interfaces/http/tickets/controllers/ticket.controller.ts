@@ -16,6 +16,7 @@ import { MessageResponseDto } from '../dto/message-response.dto';
 import { ListTicketsQueryDto } from '../dto/list-tickets-query.dto';
 import { ListTicketsResponseDto } from '../dto/list-tickets-response.dto';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { CurrentUser as CurrentUserType } from '../../shared/types/current-user.interface';
 
 @UseGuards(JwtAuthGuard)
 @Controller('tickets')
@@ -27,7 +28,7 @@ export class TicketsController {
     private readonly createTicket: CreateTicketUseCase,
     private readonly addMessageToTicket: AddMessageToTicketUseCase,
     private readonly updateTicketStatus: UpdateTicketStatusUseCase,
-  ) {}
+  ) { }
 
   @Get()
   async list(
@@ -41,7 +42,7 @@ export class TicketsController {
       page: query.page,
       pageSize: query.pageSize,
       from: query.from ? new Date(query.from) : undefined,
-  to: query.to ? new Date(query.to) : undefined,
+      to: query.to ? new Date(query.to) : undefined,
     });
 
     return {
@@ -65,7 +66,7 @@ export class TicketsController {
   async generateReply(
     @Param("id") id: string,
     @UserId() userId: string,
-  ) {
+  ): Promise<{ reply: string }> {
     const reply = await this.generateAiReply.execute(id, userId);
     return { reply };
   }
@@ -74,7 +75,7 @@ export class TicketsController {
   async create(
     @UserId() userId: string,
     @Body() dto: CreateTicketDto,
-  ) {
+  ): Promise<TicketResponseDto> {
     const ticket = await this.createTicket.execute(
       new CreateTicketInput(userId, dto.subject, dto.content),
     );
@@ -101,9 +102,9 @@ export class TicketsController {
   async updateStatus(
     @Param('id') id: string,
     @Body() body: UpdateTicketStatusDto,
-    @CurrentUser() user: any
-  ) {
-    const updated = await this.updateTicketStatus.execute(id, user.id, body.status);
+    @CurrentUser() user: CurrentUserType
+  ): Promise<TicketResponseDto> {
+    const updated = await this.updateTicketStatus.execute(id, user.userId, body.status);
     return TicketResponseDto.fromDomain(updated);
   }
 }

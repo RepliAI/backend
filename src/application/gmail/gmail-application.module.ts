@@ -10,22 +10,22 @@ import { ImportEmailsUseCase } from './use-cases/import-emails.usecase';
 import { GetGmailStatusUseCase } from './use-cases/get-gmail-status.usecase';
 
 @Module({
-  imports: [
-    GmailInfrastructureModule,
-    TicketsInfrastructureModule,
-    IdGeneratorModule,
-  ],
-  providers: [
-    GetGmailAuthUrlUseCase,
-    HandleGmailCallbackUseCase,
-    ImportEmailsUseCase,
-    GetGmailStatusUseCase,
-  ],
-  exports: [
-    GetGmailAuthUrlUseCase,
-    HandleGmailCallbackUseCase,
-    ImportEmailsUseCase,
-    GetGmailStatusUseCase,
-  ],
+    imports: [
+        GmailInfrastructureModule,
+        TicketsInfrastructureModule,
+        IdGeneratorModule,
+    ],
+    providers: [
+        GetGmailAuthUrlUseCase,
+        HandleGmailCallbackUseCase,
+        ImportEmailsUseCase,
+        GetGmailStatusUseCase,
+    ],
+    exports: [
+        GetGmailAuthUrlUseCase,
+        HandleGmailCallbackUseCase,
+        ImportEmailsUseCase,
+        GetGmailStatusUseCase,
+    ],
 })
-export class GmailApplicationModule {}
+export class GmailApplicationModule { }

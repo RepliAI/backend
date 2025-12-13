@@ -6,13 +6,13 @@ import { GetStatsUseCase } from 'src/application/stats/use-cases/get-stats.useca
 @UseGuards(JwtAuthGuard)
 @Controller('stats')
 export class StatsController {
-  constructor(private readonly getStats: GetStatsUseCase) {}
+  constructor(private readonly getStats: GetStatsUseCase) { }
 
   @Get()
   async get(
     @UserId() userId: string,
     @Query("days") days?: string
-  ) {
+  ): Promise<unknown> {
     const nbDays = days ? parseInt(days, 10) : 14;
     return this.getStats.execute(userId, nbDays);
   }

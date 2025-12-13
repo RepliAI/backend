@@ -13,4 +13,4 @@ import { StripePaymentService } from "./stripe.service";
   ],
   exports: [BILLING_PAYMENT_PROVIDER],
 })
-export class StripeModule {}
+export class StripeModule { }

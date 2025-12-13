@@ -1,10 +1,12 @@
-import { Ticket } from 'src/domain/tickets/entities/ticket.entity';
-import { Message } from 'src/domain/tickets/entities/message.entity';
+import { Ticket as TicketEntity } from 'src/domain/tickets/entities/ticket.entity';
+import { Message as MessageEntity } from 'src/domain/tickets/entities/message.entity';
+import { Ticket } from '../../shared/types/ticket.type';
+import { Message } from '../../shared/types/message.type';
 
 export class PrismaTicketMapper {
-  static toDomain(raw: any): Ticket {
-    const messages = raw.messages?.map((message: any) => 
-      new Message(
+  static toDomain(raw: Ticket): TicketEntity {
+    const messages = raw.messages?.map((message: Message) =>
+      new MessageEntity(
         message.id,
         raw.id,
         message.gmailId,
@@ -12,11 +14,11 @@ export class PrismaTicketMapper {
         message.to,
         message.content,
         message.date,
-        message.threadId  
+        message.threadId
       )
     ) ?? [];
 
-    return new Ticket(
+    return new TicketEntity(
       raw.id,
       raw.userId,
       raw.subject,

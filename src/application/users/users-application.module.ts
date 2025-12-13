@@ -8,19 +8,19 @@ import { LoginUserUseCase } from './use-cases/login-user.usecase';
 import { RefreshTokensUseCase } from './use-cases/refresh-token.usecase';
 
 @Module({
-  imports: [
-    UsersInfrastructureModule,
-    AuthInfrastructureModule,
-  ],
-  providers: [
-    RegisterUserUseCase,
-    LoginUserUseCase,
-    RefreshTokensUseCase,
-  ],
-  exports: [
-    RegisterUserUseCase,
-    LoginUserUseCase,
-    RefreshTokensUseCase,
-  ],
+    imports: [
+        UsersInfrastructureModule,
+        AuthInfrastructureModule,
+    ],
+    providers: [
+        RegisterUserUseCase,
+        LoginUserUseCase,
+        RefreshTokensUseCase,
+    ],
+    exports: [
+        RegisterUserUseCase,
+        LoginUserUseCase,
+        RefreshTokensUseCase,
+    ],
 })
-export class UsersApplicationModule {}
+export class UsersApplicationModule { }

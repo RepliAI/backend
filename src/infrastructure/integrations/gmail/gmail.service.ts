@@ -126,26 +126,26 @@ export class GmailService implements IGmailService {
         subject: string;
         content: string;
     }): Promise<string> {
-    
+
         const token = await this.getToken(params.userId);
 
         if (!token.accessToken || !token.refreshToken) {
             throw new Error('NO_GMAIL_TOKEN');
         }
-        
+
         this.oauth2Client.setCredentials({
             access_token: token.accessToken,
             refresh_token: token.refreshToken,
         });
-    
+
         const gmail = google.gmail({ version: 'v1', auth: this.oauth2Client });
-    
+
         const raw = this.buildRawEmail({
             to: params.to,
             subject: params.subject,
             content: params.content,
         });
-    
+
         const res = await gmail.users.messages.send({
             userId: 'me',
             requestBody: {
@@ -153,61 +153,61 @@ export class GmailService implements IGmailService {
                 threadId: params.threadId,
             },
         });
-    
+
         return res.data.id!;
     }
 
     private buildRawEmail({ to, subject, content }: { to: string; subject: string; content: string }) {
         const encodedSubject = this.encodeHeader(subject);
         const str =
-          `To: ${to}\r\n` +
-          `Subject: ${encodedSubject}\r\n` +
-          `Content-Type: text/plain; charset="UTF-8"\r\n\r\n` +
-          content;
-      
+            `To: ${to}\r\n` +
+            `Subject: ${encodedSubject}\r\n` +
+            `Content-Type: text/plain; charset="UTF-8"\r\n\r\n` +
+            content;
+
         return Buffer.from(str)
-          .toString('base64')
-          .replace(/\+/g, '-')
-          .replace(/\//g, '_');
+            .toString('base64')
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_');
     }
     private async getToken(userId: string): Promise<{
         accessToken: string;
         refreshToken: string;
         expiryDate: Date;
-      }> {
+    }> {
         const token = await this.prisma.gmailToken.findUnique({
-          where: { userId },
+            where: { userId },
         });
-      
+
         if (!token) {
-          throw new Error('No Gmail token found for this user');
+            throw new Error('No Gmail token found for this user');
         }
-      
+
         const isExpired = token.expiryDate.getTime() < Date.now();
-      
+
         if (!isExpired) {
-          return {
-            accessToken: token.accessToken,
-            refreshToken: token.refreshToken,
-            expiryDate: token.expiryDate,
-          };
+            return {
+                accessToken: token.accessToken,
+                refreshToken: token.refreshToken,
+                expiryDate: token.expiryDate,
+            };
         }
-      
+
         const refreshed = await this.oauth2Client.refreshToken(token.refreshToken);
         const newToken = refreshed.tokens;
-      
+
         await this.prisma.gmailToken.update({
-          where: { userId },
-          data: {
-            accessToken: newToken.access_token!,
-            expiryDate: new Date(Date.now() + (newToken.expires_in ?? 3600) * 1000),
-          },
+            where: { userId },
+            data: {
+                accessToken: newToken.access_token!,
+                expiryDate: new Date(Date.now() + ((newToken as any).expires_in ?? 3600) * 1000),
+            },
         });
-      
+
         return {
-          accessToken: newToken.access_token!,
-          refreshToken: token.refreshToken,
-          expiryDate: new Date(Date.now() + (newToken.expires_in ?? 3600) * 1000),
+            accessToken: newToken.access_token!,
+            refreshToken: token.refreshToken,
+            expiryDate: new Date(Date.now() + ((newToken as any).expires_in ?? 3600) * 1000),
         };
     }
     private encodeHeader(value: string): string {
@@ -216,13 +216,13 @@ export class GmailService implements IGmailService {
     }
     async getAllConnectedUsers() {
         return this.prisma.gmailToken.findMany({
-          select: { userId: true },
+            select: { userId: true },
         });
-    }  
+    }
 
 }
 
-const htmlDecode = (input: string): string =>  {
+const htmlDecode = (input: string): string => {
     if (!input) return '';
     return input
         .replace(/&amp;/g, '&')

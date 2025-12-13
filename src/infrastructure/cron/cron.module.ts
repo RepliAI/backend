@@ -15,4 +15,4 @@ import { GmailImportCron } from './gmail-import.cron';
     GmailImportCron,
   ],
 })
-export class CronModule {}
+export class CronModule { }
