@@ -1,5 +1,5 @@
 import { createTicketRepoMock } from 'src/tests/mocks/ticket-repo.mock';
-import { createIdGeneratorMock } from 'src/tests/mocks/id-generalor.mock';
+import { createUserPreferencesRepoMock } from 'src/tests/mocks/user-preferences-repo.mock';
 import { OpenAiService } from 'src/infrastructure/integrations/openai/openai.service';
 import { Ticket } from 'src/domain/tickets/entities/ticket.entity';
 import { Message } from 'src/domain/tickets/entities/message.entity';
@@ -8,37 +8,34 @@ import { GenerateAiReplyUseCase } from '../generate-ai-reply.usecase';
 
 jest.mock('src/infrastructure/integrations/openai/openai.service');
 
-jest.mock("openai", () => {
-    return {
-      default: jest.fn().mockImplementation(() => ({
-        chat: {
-          completions: {
-            create: jest.fn(),
-          },
+jest.mock('openai', () => {
+  return {
+    default: jest.fn().mockImplementation(() => ({
+      chat: {
+        completions: {
+          create: jest.fn(),
         },
-      })),
-    };
-  });
-  
+      },
+    })),
+  };
+});
 
 describe('GenerateAiReplyUseCase', () => {
   let useCase: GenerateAiReplyUseCase;
   let ticketRepo: ReturnType<typeof createTicketRepoMock>;
   let openAiService: jest.Mocked<OpenAiService>;
-  let idGenerator: ReturnType<typeof createIdGeneratorMock>;
+  let userPreferencesRepo: ReturnType<typeof createUserPreferencesRepoMock>;
 
   beforeEach(() => {
     ticketRepo = createTicketRepoMock();
     openAiService = new OpenAiService() as jest.Mocked<OpenAiService>;
     openAiService.generateReply = jest.fn();
-    idGenerator = createIdGeneratorMock();
-
-    openAiService.generateReply = jest.fn();
+    userPreferencesRepo = createUserPreferencesRepoMock();
 
     useCase = new GenerateAiReplyUseCase(
       ticketRepo,
       openAiService,
-      idGenerator,
+      userPreferencesRepo,
     );
   });
 
@@ -52,99 +49,134 @@ describe('GenerateAiReplyUseCase', () => {
 
   it('should call OpenAI with generated prompt', async () => {
     const ticket = new Ticket(
-        't1',
-        'user1',
-        'Test subject',
-        'open',
-        new Date(),
-        [
-            new Message(
-              'msg1',
-              't1',
-              'g1',
-              'customer',
-              'agent',
-              'Bonjour, j’ai un problème.',
-              new Date(),
-            ),
-          ],
+      't1',
+      'user1',
+      'Test subject',
+      'open',
+      new Date(),
+      [
+        new Message(
+          'msg1',
+          't1',
+          'g1',
+          'customer',
+          'agent',
+          "Bonjour, j'ai un problème.",
+          new Date(),
+          'thread-1',
+        ),
+      ],
     );
 
     ticketRepo.findById.mockResolvedValue(ticket);
+    userPreferencesRepo.getByUserId.mockResolvedValue(null);
     openAiService.generateReply.mockResolvedValue('AI_REPLY');
-    idGenerator.generate.mockReturnValue('msg123');
 
     await useCase.execute('t1', 'user1');
 
     expect(openAiService.generateReply).toHaveBeenCalledTimes(1);
+    expect(userPreferencesRepo.getByUserId).toHaveBeenCalledWith('user1');
 
     const callArg = openAiService.generateReply.mock.calls[0][0];
-    expect(callArg).toContain("Bonjour, j’ai un problème.");
-    expect(callArg).toContain("assistant support professionnel");
+    expect(callArg.user).toContain("Bonjour, j'ai un problème.");
+    expect(callArg.system).toContain('assistant spécialisé en support client professionnel');
   });
 
-  it('should append AI reply as a new message and update ticket', async () => {
-    const ticket = new Ticket(
-        't1',
-        'user1',
-        'Test subject',
-        'open',
-        new Date(),
-        [
-            new Message(
-              'msg1',
-              't1',
-              'g1',
-              'customer',
-              'agent',
-              'AI_REPLY',
-              new Date(),
-            ),
-        ],
-    );
-  
+  it('should throw if ticket has no messages', async () => {
+    const ticket = new Ticket('t1', 'user1', 'Test subject', 'open', new Date(), []);
+
     ticketRepo.findById.mockResolvedValue(ticket);
-    openAiService.generateReply.mockResolvedValue('AI_REPLY');
-    idGenerator.generate.mockReturnValue('msg1');
-  
-    await useCase.execute('t1', 'user1');
-  
-    expect(ticket.messages.length).toBe(1);
-  
-    const msg = ticket.messages[0];
-  
-    expect(msg).toBeInstanceOf(Message);
-    expect(msg.content).toBe('AI_REPLY');
-  
+
+    await expect(useCase.execute('t1', 'user1')).rejects.toThrow(
+      'Cannot generate reply: no message found on this ticket.',
+    );
   });
-  
+
+  it('should throw if last message has no gmailId', async () => {
+    const ticket = new Ticket(
+      't1',
+      'user1',
+      'Test subject',
+      'open',
+      new Date(),
+      [
+        new Message('msg1', 't1', null, 'customer', 'agent', 'Hello', new Date()),
+      ],
+    );
+
+    ticketRepo.findById.mockResolvedValue(ticket);
+
+    await expect(useCase.execute('t1', 'user1')).rejects.toThrow(
+      'Cannot reply: last message has no Gmail ID (required for threading).',
+    );
+  });
+
 
   it('should return the generated reply', async () => {
     const ticket = new Ticket(
-        't1',
-        'user1',
-        'Subject',
-        'open',
-        new Date(),
-        [
-            new Message(
-              'msg1',
-              't1',
-              'g1',
-              'customer',
-              'agent',
-              'Bonjour, j’ai un problème.',
-              new Date(),
-            ),
-        ],
+      't1',
+      'user1',
+      'Subject',
+      'open',
+      new Date(),
+      [
+        new Message(
+          'msg1',
+          't1',
+          'g1',
+          'customer',
+          'agent',
+          "Bonjour, j'ai un problème.",
+          new Date(),
+          'thread-1',
+        ),
+      ],
     );
 
     ticketRepo.findById.mockResolvedValue(ticket);
+    userPreferencesRepo.getByUserId.mockResolvedValue(null);
     openAiService.generateReply.mockResolvedValue('AI_REPLY');
-    idGenerator.generate.mockReturnValue('id123');
 
     const result = await useCase.execute('t1', 'user1');
 
     expect(result).toBe('AI_REPLY');
+  });
+
+  it('should use user preferences when available', async () => {
+    const ticket = new Ticket(
+      't1',
+      'user1',
+      'Subject',
+      'open',
+      new Date(),
+      [
+        new Message(
+          'msg1',
+          't1',
+          'g1',
+          'customer',
+          'agent',
+          'Hello',
+          new Date(),
+        ),
+      ],
+    );
+
+    ticketRepo.findById.mockResolvedValue(ticket);
+    userPreferencesRepo.getByUserId.mockResolvedValue({
+      id: 'pref1',
+      userId: 'user1',
+      tone: 'friendly',
+      signature: 'Best regards',
+      autoImport: true,
+      autoAiSend: false,
+    } as any);
+    openAiService.generateReply.mockResolvedValue('AI_REPLY');
+
+    await useCase.execute('t1', 'user1');
+
+    const callArg = openAiService.generateReply.mock.calls[0][0];
+    expect(callArg.user).toContain('tone: "friendly"');
+    expect(callArg.user).toContain('signature: """Best regards"""');
   });
 });

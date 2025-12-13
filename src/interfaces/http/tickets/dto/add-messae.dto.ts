@@ -1,3 +1,7 @@
+import { IsString, IsNotEmpty } from 'class-validator';
+
 export class AddMessageDto {
-    content: string;
-}  
+  @IsString()
+  @IsNotEmpty()
+  content: string;
+}

@@ -8,14 +8,14 @@ export class UpdateUserPreferencesInput {
     public readonly signature?: string,
     public readonly autoImport?: boolean,
     public readonly autoAiSend?: boolean,
-  ) {}
+  ) { }
 }
 
 export class UpdateUserPreferencesUseCase {
   constructor(
     @Inject(USER_PREFERENCES_REPOSITORY)
     private readonly repo: IUserPreferencesRepository,
-  ) {}
+  ) { }
 
   async execute(userId: string, input: UpdateUserPreferencesInput) {
     return this.repo.upsert(userId, {

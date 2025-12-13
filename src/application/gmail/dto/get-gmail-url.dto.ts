@@ -1,7 +1,13 @@
+import { IsString, IsNotEmpty } from 'class-validator';
+
 export class GetGmailAuthUrlInput {
-  constructor(public readonly userId: string) {}
+  @IsString()
+  @IsNotEmpty()
+  userId: string;
 }
 
 export class GetGmailAuthUrlOutput {
-  constructor(public readonly url: string) {}
+  @IsString()
+  @IsNotEmpty()
+  url: string;
 }

@@ -11,7 +11,9 @@ describe('HandleGmailCallbackUseCase', () => {
 
     const useCase = new HandleGmailCallbackUseCase(gmailService);
 
-    const input = new HandleGmailCallbackInput('auth-code-123', 'user-123');
+    const input = new HandleGmailCallbackInput();
+    input.code = 'auth-code-123';
+    input.stateUserId = 'user-123';
 
     await useCase.execute(input);
 

@@ -22,7 +22,7 @@ import { BillingHttpModule } from './interfaces/http/billing/billing-http.module
     GmailHttpModule,
     CronModule,
     UserPreferencesModule,
-    BillingHttpModule
+    BillingHttpModule,
   ],
 })
 export class AppModule {}

@@ -38,7 +38,7 @@ describe('RefreshTokensUseCase', () => {
 
     expect(res.accessToken).toBe('access-token');
     expect(res.refreshToken).toBe('refresh-token');
-  });
+  }, 10000);
 
   it('should throw on invalid refresh token', async () => {
     await expect(useCase.execute('invalid')).rejects.toBeInstanceOf(

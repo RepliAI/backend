@@ -14,4 +14,4 @@ import { UserPreferencesInfrastructureModule } from "src/infrastructure/user-pre
     UpdateUserPreferencesUseCase,
   ],
 })
-export class UserPreferencesApplicationModule {}
+export class UserPreferencesApplicationModule { }

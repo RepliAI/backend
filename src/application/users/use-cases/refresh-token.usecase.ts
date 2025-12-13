@@ -1,9 +1,10 @@
-import { Inject, UnauthorizedException } from "@nestjs/common";
+import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import * as bcrypt from 'bcrypt';
 import { JwtService } from "@nestjs/jwt";
 import { AUTH_TOKEN_SERVICE, IAuthTokenService } from "src/application/auth/services/auth-token.service";
 import { IUserRepository, USER_REPOSITORY } from "src/domain/users/repositories/user.repository";
 
+@Injectable()
 export class RefreshTokensUseCase {
     constructor(
         @Inject(USER_REPOSITORY)

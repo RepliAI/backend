@@ -8,7 +8,7 @@ export class Ticket {
     public status: string,
     public readonly createdAt: Date,
     public messages: Message[] = [],
-  ) {}
+  ) { }
 
   addMessage(message: Message) {
     this.messages.push(message);

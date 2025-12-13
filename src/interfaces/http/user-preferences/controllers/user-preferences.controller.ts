@@ -5,25 +5,27 @@ import { UpdateUserPreferencesUseCase } from 'src/application/user-preferences/u
 
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../auth/security/jwt-auth.guard';
+import { CurrentUser as CurrentUserType } from '../../shared/types/current-user.interface';
+import { UpdateUserPreferencesDto } from '../dto/update-user-preferences.dto';
 
 @Controller('preferences')
 export class UserPreferencesController {
   constructor(
     private readonly getUserPrefs: GetUserPreferencesUseCase,
     private readonly updateUserPrefs: UpdateUserPreferencesUseCase,
-  ) {}
+  ) { }
   @UseGuards(JwtAuthGuard)
   @Get()
-  async get(@CurrentUser() user: any) {
+  async get(@CurrentUser() user: CurrentUserType): Promise<unknown> {
     return this.getUserPrefs.execute(user.userId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch()
   async update(
-    @CurrentUser() user: any,
-    @Body() dto: { tone: string; signature: string, autoImport: boolean, autoAiSend: boolean },
-  ) {
+    @CurrentUser() user: CurrentUserType,
+    @Body() dto: UpdateUserPreferencesDto,
+  ): Promise<unknown> {
     return this.updateUserPrefs.execute(user.userId, dto);
   }
 }

@@ -1,17 +1,18 @@
 import { Injectable } from '@nestjs/common';
 
 import { ITicketRepository, ListTicketsParams, PaginatedTicketsResult } from 'src/domain/tickets/repositories/ticket.repository';
-import { Ticket } from 'src/domain/tickets/entities/ticket.entity';
-import { Message } from 'src/domain/tickets/entities/message.entity';
+import { Ticket as TicketEntity } from 'src/domain/tickets/entities/ticket.entity';
+import { Message as MessageEntity } from 'src/domain/tickets/entities/message.entity';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { PrismaTicketMapper } from './mappers/prisma-ticket.mapper';
+import { TicketWhereClause } from '../shared/types/where-clause.type';
 
 @Injectable()
 export class PrismaTicketRepository implements ITicketRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
-  async findAllByUser(userId: string): Promise<Ticket[]> {
+  async findAllByUser(userId: string): Promise<TicketEntity[]> {
     const result = await this.prisma.ticket.findMany({
       where: { userId },
       include: { messages: true },
@@ -24,11 +25,11 @@ export class PrismaTicketRepository implements ITicketRepository {
   async listWithFilters(params: ListTicketsParams): Promise<PaginatedTicketsResult> {
     const { userId, status, search, page, pageSize } = params;
 
-    const where: any = { userId };
+    const where: TicketWhereClause = { userId };
 
     if (params.from || params.to) {
       where.createdAt = {};
-    
+
       if (params.from) {
         where.createdAt.gte = params.from;
       }
@@ -71,7 +72,7 @@ export class PrismaTicketRepository implements ITicketRepository {
     };
   }
 
-  async findById(id: string, userId: string): Promise<Ticket | null> {
+  async findById(id: string, userId: string): Promise<TicketEntity | null> {
     const result = await this.prisma.ticket.findFirst({
       where: { id, userId },
       include: {
@@ -85,7 +86,7 @@ export class PrismaTicketRepository implements ITicketRepository {
     return PrismaTicketMapper.toDomain(result);
   }
 
-  async create(ticket: Ticket): Promise<void> {
+  async create(ticket: TicketEntity): Promise<void> {
     await this.prisma.ticket.create({
       data: {
         id: ticket.id,
@@ -97,7 +98,7 @@ export class PrismaTicketRepository implements ITicketRepository {
     });
   }
 
-  async update(ticket: Ticket): Promise<void> {
+  async update(ticket: TicketEntity): Promise<void> {
     await this.prisma.ticket.update({
       where: { id: ticket.id },
       data: {
@@ -107,17 +108,17 @@ export class PrismaTicketRepository implements ITicketRepository {
     });
   }
 
-  async findBySubjectAndUser(subject: string, userId: string): Promise<Ticket | null> {
+  async findBySubjectAndUser(subject: string, userId: string): Promise<TicketEntity | null> {
     const record = await this.prisma.ticket.findFirst({
       where: { subject, userId },
       include: { messages: true },
     });
-  
+
     if (!record) return null;
     return PrismaTicketMapper.toDomain(record);
   }
 
-  async addMessage(ticketId: string, message: Message): Promise<void> {
+  async addMessage(ticketId: string, message: MessageEntity): Promise<void> {
     await this.prisma.message.create({
       data: {
         id: message.id,
@@ -131,15 +132,15 @@ export class PrismaTicketRepository implements ITicketRepository {
       },
     });
   }
-  
-  async findMessageByGmailId(gmailId: string): Promise<Message | null> {
+
+  async findMessageByGmailId(gmailId: string): Promise<MessageEntity | null> {
     const record = await this.prisma.message.findUnique({
       where: { gmailId },
     });
-  
+
     if (!record) return null;
-  
-    return new Message(
+
+    return new MessageEntity(
       record.id,
       record.ticketId,
       record.gmailId,
@@ -156,7 +157,7 @@ export class PrismaTicketRepository implements ITicketRepository {
       data: { status },
     });
   }
-  async findByThreadId(threadId: string): Promise<Ticket | null> {
+  async findByThreadId(threadId: string): Promise<TicketEntity | null> {
     const msg = await this.prisma.message.findFirst({
       where: { threadId },
       include: {
@@ -165,9 +166,9 @@ export class PrismaTicketRepository implements ITicketRepository {
         },
       },
     });
-  
+
     if (!msg) return null;
-  
+
     return PrismaTicketMapper.toDomain(msg.ticket);
   }
 }

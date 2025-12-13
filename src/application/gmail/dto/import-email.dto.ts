@@ -1,7 +1,13 @@
+import { IsString, IsNotEmpty, IsNumber, Min } from 'class-validator';
+
 export class ImportEmailsInput {
-  constructor(public readonly userId: string) {}
+  @IsString()
+  @IsNotEmpty()
+  userId: string;
 }
 
 export class ImportEmailsOutput {
-  constructor(public readonly imported: number) {}
+  @IsNumber()
+  @Min(0)
+  imported: number;
 }

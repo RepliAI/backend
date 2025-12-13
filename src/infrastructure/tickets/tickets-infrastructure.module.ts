@@ -19,4 +19,4 @@ import { PrismaTicketRepository } from '../repositories/prisma-ticket.repository
     },
   ],
 })
-export class TicketsInfrastructureModule {}
+export class TicketsInfrastructureModule { }

@@ -1,4 +1,4 @@
-import { Controller, Headers, Post, Req } from "@nestjs/common";
+import { Controller, Headers, Post, Req, Request } from "@nestjs/common";
 import { ProcessStripeWebhookUseCase } from "src/application/billing/use-cases/process-stripe-webhook.usecase";
 import { StripeWebhookService } from "src/infrastructure/billing/stripe/stripe-webhook.service";
 
@@ -7,13 +7,13 @@ export class StripeWebhookController {
   constructor(
     private readonly processor: ProcessStripeWebhookUseCase,
     private readonly verifier: StripeWebhookService,
-  ) {}
+  ) { }
 
   @Post()
   async handleWebhook(
-    @Req() req: any,
+    @Req() req: Request & { body: Buffer },
     @Headers("stripe-signature") signature: string,
-  ) {
+  ): Promise<{ received: boolean }> {
     const secret = process.env.STRIPE_WEBHOOK_SECRET;
 
     const event = this.verifier.verifySignature(req.body, signature, secret);

@@ -24,7 +24,10 @@ describe('AddMessageToTicketUseCase', () => {
   it('should throw if ticket does not exist', async () => {
     ticketRepository.findById.mockResolvedValue(null);
 
-    const input = new AddMessageInput('t1', 'user1', 'Hello');
+    const input = new AddMessageInput();
+    input.ticketId = 't1';
+    input.userId = 'user1';
+    input.content = 'Hello';
 
     await expect(useCase.execute(input)).rejects.toThrow(
       'Ticket with ID t1 not found.',
@@ -35,7 +38,10 @@ describe('AddMessageToTicketUseCase', () => {
     const ticket = new Ticket('t1', 'otherUser', 'subject', 'open', new Date(), []);
     ticketRepository.findById.mockResolvedValue(ticket);
 
-    const input = new AddMessageInput('t1', 'user1', 'Test message');
+    const input = new AddMessageInput();
+    input.ticketId = 't1';
+    input.userId = 'user1';
+    input.content = 'Test message';
 
     await expect(useCase.execute(input)).rejects.toThrow(
       'You do not own this ticket.',
@@ -43,47 +49,83 @@ describe('AddMessageToTicketUseCase', () => {
   });
 
   it('should append a new message to the ticket', async () => {
+    const existingMessage = new Message(
+      'msg1',
+      't1',
+      'gmail-1',
+      'customer',
+      'agent',
+      'Initial message',
+      new Date(),
+      'thread-1',
+    );
+
     const ticket = new Ticket(
       't1',
       'user1',
       'subject',
       'open',
       new Date(),
-      [],
+      [existingMessage],
     );
 
     ticketRepository.findById.mockResolvedValue(ticket);
     idGenerator.generate.mockReturnValue('msg123');
+    gmailServiceMock.sendReply.mockResolvedValue(undefined);
 
-    const input = new AddMessageInput('t1', 'user1', 'Hello world');
+    const input = new AddMessageInput();
+    input.ticketId = 't1';
+    input.userId = 'user1';
+    input.content = 'Hello world';
+    input.gmailId = 'gmail-2';
 
     const result = await useCase.execute(input);
 
-    expect(ticket.messages.length).toBe(1);
+    expect(ticketRepository.addMessage).toHaveBeenCalledTimes(1);
+    expect(gmailServiceMock.sendReply).toHaveBeenCalledWith({
+      userId: 'user1',
+      threadId: 'thread-1',
+      to: 'customer',
+      subject: 'subject',
+      content: 'Hello world',
+    });
 
-    const msg = ticket.messages[0];
-
-    expect(msg).toBeInstanceOf(Message);
-    expect(msg.id).toBe('msg123');
-    expect(msg.content).toBe('Hello world');
-
-    expect(result).toBe(msg);
+    expect(result).toBeInstanceOf(Message);
+    expect(result.id).toBe('msg123');
+    expect(result.content).toBe('Hello world');
+    expect(result.ticketId).toBe('t1');
   });
 
   it('should call repository.update with updated ticket', async () => {
+    const existingMessage = new Message(
+      'msg1',
+      't1',
+      'gmail-1',
+      'customer',
+      'agent',
+      'Initial message',
+      new Date(),
+      'thread-1',
+    );
+
     const ticket = new Ticket(
       't1',
       'user1',
       'subject',
       'open',
       new Date(),
-      [],
+      [existingMessage],
     );
 
     ticketRepository.findById.mockResolvedValue(ticket);
     idGenerator.generate.mockReturnValue('m1');
+    gmailServiceMock.sendReply.mockResolvedValue(undefined);
 
-    const input = new AddMessageInput('t1', 'user1', 'hello');
+    const input = new AddMessageInput();
+    input.ticketId = 't1';
+    input.userId = 'user1';
+    input.content = 'hello';
+    input.gmailId = 'gmail-2';
 
     await useCase.execute(input);
 

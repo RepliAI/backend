@@ -1,9 +1,16 @@
-import { Inject, BadRequestException } from "@nestjs/common";
+import { Inject, Injectable, BadRequestException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
-import { IPasswordResetService, PASSWORD_RESET_SERVICE } from "src/domain/auth/services/password-reset.service";
-import { IUserRepository, USER_REPOSITORY } from "src/domain/users/repositories/user.repository";
+import {
+  IPasswordResetService,
+  PASSWORD_RESET_SERVICE,
+} from 'src/domain/auth/services/password-reset.service';
+import {
+  IUserRepository,
+  USER_REPOSITORY,
+} from 'src/domain/users/repositories/user.repository';
 
+@Injectable()
 export class ResetPasswordUseCase {
   constructor(
     @Inject(USER_REPOSITORY)
@@ -19,7 +26,7 @@ export class ResetPasswordUseCase {
     try {
       payload = await this.passwordReset.verifyResetToken(token);
     } catch {
-      throw new BadRequestException("Lien invalide ou expiré.");
+      throw new BadRequestException('Lien invalide ou expiré.');
     }
 
     const hashed = await bcrypt.hash(newPassword, 10);

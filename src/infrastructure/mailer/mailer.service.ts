@@ -18,7 +18,7 @@ export class MailerService {
     });
   }
 
-  private compileTemplate(templateName: string, variables: any): string {
+  private compileTemplate(templateName: string, variables: Record<string, unknown>): string {
     const templatePath = path.join(
       __dirname,
       "templates",

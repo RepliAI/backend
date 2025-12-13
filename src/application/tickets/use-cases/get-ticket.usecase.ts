@@ -6,7 +6,7 @@ export class GetTicketByIdUseCase {
   constructor(
     @Inject(TICKET_REPOSITORY)
     private readonly ticketRepository: ITicketRepository,
-  ) {}
+  ) { }
 
   async execute(ticketId: string, userId: string): Promise<Ticket> {
     const ticket = await this.ticketRepository.findById(ticketId, userId);

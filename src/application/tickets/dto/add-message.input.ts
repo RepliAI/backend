@@ -1,9 +1,19 @@
+import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
+
 export class AddMessageInput {
-    constructor(
-      public readonly ticketId: string,
-      public readonly userId: string,
-      public readonly content: string,
-      public readonly gmailId?: string,
-    ) {}
+  @IsString()
+  @IsNotEmpty()
+  ticketId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  userId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  content: string;
+
+  @IsString()
+  @IsOptional()
+  gmailId?: string;
 }
-  
