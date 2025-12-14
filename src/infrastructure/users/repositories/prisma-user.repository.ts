@@ -51,4 +51,47 @@ export class PrismaUserRepository implements IUserRepository {
             data: { passwordHash: hashedPassword },
         });
     }
+
+    async delete(userId: string): Promise<void> {
+        await this.prisma.$transaction(async (transactionClient) => {
+            await transactionClient.message.deleteMany({
+                where: { ticket: { userId } },
+            });
+
+            await transactionClient.ticket.deleteMany({
+                where: { userId },
+            });
+
+            await transactionClient.gmailToken.deleteMany({
+                where: { userId },
+            });
+
+            await transactionClient.subscription.deleteMany({
+                where: { userId },
+            });
+
+            await transactionClient.userPreferences.deleteMany({
+                where: { userId },
+            });
+
+            await transactionClient.user.delete({
+                where: { id: userId },
+            });
+        });
+    }
+
+    async getUserCreatedAt(userId: string): Promise<Date | null> {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { createdAt: true },
+        });
+        return user?.createdAt ?? null;
+    }
+
+    async updateEmail(userId: string, newEmail: string): Promise<void> {
+        await this.prisma.user.update({
+            where: { id: userId },
+            data: { email: newEmail },
+        });
+    }
 }

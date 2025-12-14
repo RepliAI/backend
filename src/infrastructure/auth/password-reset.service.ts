@@ -23,4 +23,31 @@ export class PasswordResetService implements IPasswordResetService {
         const decoded = await this.jwt.verifyAsync(token, {secret: process.env.JWT_ACCESS_SECRET});
         return { userId: decoded.sub };
     }
+
+    async generateEmailChangeToken(userId: string, newEmail: string): Promise<string> {
+        return this.jwt.sign(
+            { 
+                sub: userId,
+                email: newEmail,
+                type: 'email-change'
+            },
+            {
+                expiresIn: "30m",
+                secret: process.env.JWT_ACCESS_SECRET as string,
+            }
+        );
+    }
+
+    async verifyEmailChangeToken(token: string): Promise<{ userId: string; newEmail: string }> {
+        const decoded = await this.jwt.verifyAsync(token, {secret: process.env.JWT_ACCESS_SECRET});
+        
+        if (decoded.type !== 'email-change' || !decoded.email) {
+            throw new Error('Invalid token type or missing email');
+        }
+        
+        return { 
+            userId: decoded.sub,
+            newEmail: decoded.email
+        };
+    }
 }
