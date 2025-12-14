@@ -32,10 +32,29 @@ export class GmailImportCron {
           `Import Gmail pour user=${user.userId} → ${result.imported} nouveaux messages`,
         );
 
-      } catch (err) {
+      } catch (err: any) {
+        const errorMessage = err?.message || err?.toString() || 'Unknown error';
         this.logger.error(
-          `Erreur import Gmail pour user=${user.userId}: ${err.message}`,
+          `Erreur import Gmail pour user=${user.userId}: ${errorMessage}`,
         );
+
+        if (
+          errorMessage.includes('invalid_grant') ||
+          errorMessage.includes('insufficient authentication scopes') ||
+          errorMessage.includes('Gmail token has been revoked') ||
+          err?.code === 'invalid_grant'
+        ) {
+          try {
+            await this.gmailService.removeInvalidToken(user.userId);
+            this.logger.warn(
+              `Token Gmail invalide supprimé pour user=${user.userId}. L'utilisateur devra se reconnecter.`,
+            );
+          } catch (deleteError) {
+            this.logger.error(
+              `Erreur lors de la suppression du token pour user=${user.userId}: ${deleteError}`,
+            );
+          }
+        }
       }
     }
   }
