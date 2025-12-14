@@ -4,5 +4,7 @@ export function createPasswordResetServiceMock(): jest.Mocked<IPasswordResetServ
     return {
         generateResetToken: jest.fn(),
         verifyResetToken: jest.fn(),
+        generateEmailChangeToken: jest.fn(),
+        verifyEmailChangeToken: jest.fn(),
     };
 }

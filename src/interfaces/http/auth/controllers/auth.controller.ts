@@ -1,19 +1,21 @@
-import { Body, ConflictException, Controller, Post } from '@nestjs/common';
+import { Body, ConflictException, Controller, Post, UseGuards } from '@nestjs/common';
 
 import { RegisterUserUseCase } from 'src/application/users/use-cases/register-user.usecase';
 import { RegisterUserInput } from 'src/application/users/dto/register-user.input';
 import { UserAlreadyExistsError } from 'src/domain/shared/errors/user-already-exist.errors';
 import { LoginUserUseCase } from 'src/application/users/use-cases/login-user.usecase';
 import { RefreshTokensUseCase } from 'src/application/users/use-cases/refresh-token.usecase';
-import { RegisterUserRequestDto } from '../dto/register-user.dto';
 import { ForgotPasswordUseCase } from 'src/application/auth/use-cases/forgot-password.usecase';
 import { ResetPasswordUseCase } from 'src/application/auth/use-cases/reset-password.usecase';
+import { ChangeEmailConfirmUseCase } from 'src/application/users/use-cases/change-email-confirm.usecase';
 
+import { SuccessResponse } from '../../shared/types/http-response.interface';
+import { RegisterUserRequestDto } from '../dto/register-user.dto';
 import { LoginRequestDto } from '../dto/login.dto';
 import { RefreshTokenRequestDto } from '../dto/refresh-token.dto';
 import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 import { ResetPasswordDto } from '../dto/reset-password.dto';
-import { SuccessResponse } from '../../shared/types/http-response.interface';
+import { ConfirmEmailChangeDto } from '../dto/confirm-email-change.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -23,6 +25,7 @@ export class AuthController {
         private readonly refreshTokensUseCase: RefreshTokensUseCase,
         private readonly forgotPasswordUseCase: ForgotPasswordUseCase,
         private readonly resetPasswordUseCase: ResetPasswordUseCase,
+        private readonly changeEmailConfirmUseCase: ChangeEmailConfirmUseCase,
     ) { }
 
     @Post('register')
@@ -65,6 +68,13 @@ export class AuthController {
     @Post("reset-password")
     async resetPassword(@Body() dto: ResetPasswordDto): Promise<SuccessResponse> {
         await this.resetPasswordUseCase.execute(dto.token, dto.password);
+        return { success: true };
+    }
+
+
+    @Post("confirm-email-change")
+    async confirmEmailChange(@Body() dto: ConfirmEmailChangeDto): Promise<SuccessResponse> {
+        await this.changeEmailConfirmUseCase.execute(dto.token);
         return { success: true };
     }
 }

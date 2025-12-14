@@ -10,6 +10,7 @@ import { GmailHttpModule } from './interfaces/http/gmail/gmail-http.module';
 import { CronModule } from './infrastructure/cron/cron.module';
 import { UserPreferencesModule } from './interfaces/http/user-preferences/user-preferences-http';
 import { BillingHttpModule } from './interfaces/http/billing/billing-http.module';
+import { ProfileHttpModule } from './interfaces/http/profile/profile-http.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { BillingHttpModule } from './interfaces/http/billing/billing-http.module
     CronModule,
     UserPreferencesModule,
     BillingHttpModule,
+    ProfileHttpModule,
   ],
 })
-export class AppModule {}
+export class AppModule { }
