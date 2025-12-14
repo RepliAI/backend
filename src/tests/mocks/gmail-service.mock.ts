@@ -9,5 +9,6 @@ export function createGmailServiceMock(): jest.Mocked<IGmailService> {
     fetchRecentMessages: jest.fn(),
     sendReply: jest.fn(),
     getAllConnectedUsers: jest.fn(),
+    removeInvalidToken: jest.fn(),
   };
 }

@@ -60,11 +60,7 @@ export class GmailService implements IGmailService {
     private async getClient(
         userId: string
     ) {
-        const token = await this.prisma.gmailToken.findUnique({
-            where: { userId },
-        });
-
-        if (!token) throw new Error('No Gmail token saved');
+        const token = await this.getToken(userId);
 
         this.oauth2Client.setCredentials({
             access_token: token.accessToken,
@@ -79,44 +75,55 @@ export class GmailService implements IGmailService {
         userId: string,
         maxResults = 10,
     ): Promise<GmailMessage[]> {
-        const client = await this.getClient(userId);
+        try {
+            const client = await this.getClient(userId);
 
-        const list = await client.users.messages.list({
-            userId: 'me',
-            maxResults,
-            q: 'in:inbox',
-        });
-
-        if (!list.data.messages) return [];
-
-        const messages: GmailMessage[] = [];
-
-        for (const msg of list.data.messages) {
-            const full = await client.users.messages.get({
+            const list = await client.users.messages.list({
                 userId: 'me',
-                id: msg.id!,
+                maxResults,
+                q: 'in:inbox',
             });
 
-            const headers = full.data.payload?.headers ?? [];
+            if (!list.data.messages) return [];
 
-            const getHeader = (name: string) =>
-                headers.find((h) => h.name?.toLowerCase() === name.toLowerCase())
-                    ?.value ?? '';
+            const messages: GmailMessage[] = [];
 
-            const body = extractEmailBody(full.data.payload);
+            for (const msg of list.data.messages) {
+                const full = await client.users.messages.get({
+                    userId: 'me',
+                    id: msg.id!,
+                });
 
-            messages.push({
-                id: msg.id!,
-                threadId: full.data.threadId!,
-                from: htmlDecode(getHeader('From')),
-                to: htmlDecode(getHeader('To')),
-                subject: htmlDecode(getHeader('Subject')),
-                date: new Date(getHeader('Date') || new Date()),
-                content: htmlDecode(body),
-            });
+                const headers = full.data.payload?.headers ?? [];
+
+                const getHeader = (name: string) =>
+                    headers.find((h) => h.name?.toLowerCase() === name.toLowerCase())
+                        ?.value ?? '';
+
+                const body = extractEmailBody(full.data.payload);
+
+                messages.push({
+                    id: msg.id!,
+                    threadId: full.data.threadId!,
+                    from: htmlDecode(getHeader('From')),
+                    to: htmlDecode(getHeader('To')),
+                    subject: htmlDecode(getHeader('Subject')),
+                    date: new Date(getHeader('Date') || new Date()),
+                    content: htmlDecode(body),
+                });
+            }
+
+            return messages;
+        } catch (error: any) {
+            if (
+                error?.message?.includes('insufficient authentication scopes') ||
+                error?.message?.includes('Request had insufficient authentication scopes')
+            ) {
+                await this.removeInvalidToken(userId);
+                throw new Error('Request had insufficient authentication scopes. Please reconnect your Gmail account with the required permissions.');
+            }
+            throw error;
         }
-
-        return messages;
     }
 
     async sendReply(params: {
@@ -193,22 +200,35 @@ export class GmailService implements IGmailService {
             };
         }
 
-        const refreshed = await this.oauth2Client.refreshToken(token.refreshToken);
-        const newToken = refreshed.tokens;
+        try {
+            const refreshed = await this.oauth2Client.refreshToken(token.refreshToken);
+            const newToken = refreshed.tokens;
 
-        await this.prisma.gmailToken.update({
-            where: { userId },
-            data: {
+            await this.prisma.gmailToken.update({
+                where: { userId },
+                data: {
+                    accessToken: newToken.access_token!,
+                    expiryDate: new Date(Date.now() + ((newToken as any).expires_in ?? 3600) * 1000),
+                },
+            });
+
+            return {
                 accessToken: newToken.access_token!,
+                refreshToken: token.refreshToken,
                 expiryDate: new Date(Date.now() + ((newToken as any).expires_in ?? 3600) * 1000),
-            },
-        });
-
-        return {
-            accessToken: newToken.access_token!,
-            refreshToken: token.refreshToken,
-            expiryDate: new Date(Date.now() + ((newToken as any).expires_in ?? 3600) * 1000),
-        };
+            };
+        } catch (error: any) {
+            // Si le refresh token est invalide ou révoqué, supprimer le token
+            if (
+                error?.message?.includes('invalid_grant') ||
+                error?.code === 'invalid_grant' ||
+                error?.response?.data?.error === 'invalid_grant'
+            ) {
+                await this.removeInvalidToken(userId);
+                throw new Error('Gmail token has been revoked. Please reconnect your Gmail account.');
+            }
+            throw error;
+        }
     }
     private encodeHeader(value: string): string {
         const base64 = Buffer.from(value, 'utf8').toString('base64');
@@ -217,6 +237,14 @@ export class GmailService implements IGmailService {
     async getAllConnectedUsers() {
         return this.prisma.gmailToken.findMany({
             select: { userId: true },
+        });
+    }
+
+    async removeInvalidToken(userId: string): Promise<void> {
+        await this.prisma.gmailToken.delete({
+            where: { userId },
+        }).catch(() => {
+            // Ignore si le token n'existe pas déjà
         });
     }
 
