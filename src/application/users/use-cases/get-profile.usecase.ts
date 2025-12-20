@@ -3,11 +3,12 @@ import { Inject, Injectable } from '@nestjs/common';
 import { IUserRepository, USER_REPOSITORY } from 'src/domain/users/repositories/user.repository';
 import { IGmailTokenRepository, GMAIL_TOKEN_REPOSITORY } from 'src/domain/gmail/repositories/gmail-token.repository';
 import { BILLING_SERVICE, BillingService } from 'src/domain/billing/services/billing.service';
+import { PlanType } from 'src/domain/plans/entities/plan-limits.entity';
 
 export class GetProfileOutput {
     constructor(
         public readonly email: string,
-        public readonly plan: 'free' | 'pro' | 'business',
+        public readonly plan: PlanType,
         public readonly gmailConnected: boolean,
         public readonly createdAt?: string,
     ) { }
@@ -36,7 +37,7 @@ export class GetProfileUseCase {
 
         return new GetProfileOutput(
             user.email,
-            subscription.plan as 'free' | 'pro' | 'business',
+            subscription.plan as PlanType,
             gmailConnected,
             createdAt?.toISOString(),
         );

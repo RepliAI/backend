@@ -40,4 +40,3 @@ export class ChangeEmailConfirmUseCase {
     await this.userRepository.updateEmail(userId, newEmail);
   }
 }
-

@@ -17,6 +17,7 @@ model User {
   subscription     Subscription?
   tickets          Ticket[]
   preferences      UserPreferences?
+  aiResponseUsages AiResponseUsage[]
 }
 
 model UserPreferences {
@@ -75,4 +76,13 @@ model Subscription {
   updatedAt        DateTime  @updatedAt
   nextPlan         String?
   user             User      @relation(fields: [userId], references: [id])
+}
+
+model AiResponseUsage {
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }

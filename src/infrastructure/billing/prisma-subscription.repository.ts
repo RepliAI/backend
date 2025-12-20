@@ -33,7 +33,7 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
         nextPlan: data.nextPlan ?? null,
         stripeCustomerId: data.stripeCustomerId ?? null,
         status: "active",
-        currentPeriodEnd: new Date(),
+        currentPeriodEnd: null,
       },
     });
   }

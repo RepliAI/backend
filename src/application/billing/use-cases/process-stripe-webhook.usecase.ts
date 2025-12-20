@@ -62,11 +62,11 @@ export class ProcessStripeWebhookUseCase {
     const email = session.customer_details?.email;
     const customerId = session.customer;
 
-    const stripeSubscription =
-      await this.paymentProvider.getStripeSubscription(stripeSubId);
+    const stripeSubscription = await this.paymentProvider.getStripeSubscription(stripeSubId);
 
     const priceId = stripeSubscription.plan.id;
     const newPlan = PLAN_MAP[priceId];
+
     if (!stripeSubId || !email || !priceId || !newPlan) {
       this.logger.error(
         'Missing required metadata in checkout.session.completed',
@@ -79,26 +79,71 @@ export class ProcessStripeWebhookUseCase {
 
     const existing = await this.subscriptionRepository.findByUserId(user.id);
 
-    if (!existing) {
-      const sub = await this.subscriptionRepository.create({
-        userId: user.id,
-        plan: newPlan,
-        stripeCustomerId: customerId,
-      });
+    let currentPeriodEnd: Date | null;
+    if (stripeSubscription.current_period_end) {
+      currentPeriodEnd = new Date(stripeSubscription.current_period_end * 1000);
+    } else {
+      const oneMonthFromNow = new Date();
+      oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
+      currentPeriodEnd = oneMonthFromNow;
+    }
 
-      await this.subscriptionRepository.updateSubscription(sub.id, {
+    if (!existing || existing.status === 'canceled' || !existing.stripeSubId) {
+      if (existing && existing.status === 'canceled') {
+        if (customerId) {
+          await this.subscriptionRepository.updateCustomerId(existing.id, customerId);
+        }
+
+        await this.subscriptionRepository.updateSubscription(existing.id, {
+          stripeSubId,
+          status: 'active',
+          plan: newPlan,
+          currentPeriodEnd,
+          nextPlan: null,
+        });
+      } else {
+        const sub = await this.subscriptionRepository.create({
+          userId: user.id,
+          plan: newPlan,
+          stripeCustomerId: customerId,
+        });
+
+        await this.subscriptionRepository.updateSubscription(sub.id, {
+          stripeSubId,
+          status: 'active',
+          currentPeriodEnd,
+        });
+      }
+      return;
+    }
+
+    if (existing.stripeSubId && existing.stripeSubId !== stripeSubId) {
+
+      if (customerId) {
+        await this.subscriptionRepository.updateCustomerId(existing.id, customerId);
+      }
+
+      await this.subscriptionRepository.updateSubscription(existing.id, {
         stripeSubId,
         status: 'active',
+        plan: newPlan,
+        currentPeriodEnd,
+        nextPlan: null,
       });
       return;
     }
 
-    const oldPlan = existing.plan;
+    try {
+      await this.paymentProvider.schedulePlanChange(
+        existing.stripeSubId!,
+        priceId,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Error scheduling plan change for subscription ${existing.stripeSubId}: ${error.message}`
+      );
+    }
 
-    await this.paymentProvider.schedulePlanChange(
-      existing.stripeSubId!,
-      priceId,
-    );
     if (newPlan === 'free') {
       await this.paymentProvider.scheduleCancellation(stripeSubId);
     }
@@ -124,6 +169,14 @@ export class ProcessStripeWebhookUseCase {
       return;
     }
 
+    let stripeSubscription;
+    try {
+      stripeSubscription = await this.paymentProvider.getStripeSubscription(stripeSubId);
+    } catch (error) {
+      this.logger.error(`Error fetching Stripe subscription ${stripeSubId}: ${error.message}`);
+      return;
+    }
+
     const timestamp = invoice.period_end;
     if (!timestamp) {
       this.logger.error('Missing period_end in invoice');
@@ -131,6 +184,26 @@ export class ProcessStripeWebhookUseCase {
     }
 
     const currentPeriodEnd = new Date(timestamp * 1000);
+
+    if (stripeSubscription.status === 'canceled') {
+      await this.subscriptionRepository.updateSubscription(subscription.id, {
+        currentPeriodEnd,
+        nextPlan: null,
+      });
+
+      return;
+    }
+
+    if (stripeSubscription.status !== 'active' && stripeSubscription.status !== 'trialing') {
+
+      if (subscription.nextPlan) {
+        await this.subscriptionRepository.updateSubscription(subscription.id, {
+          nextPlan: null,
+        });
+      }
+
+      return;
+    }
 
     await this.subscriptionRepository.updateStripeSubscription({
       stripeSubId,
@@ -148,12 +221,18 @@ export class ProcessStripeWebhookUseCase {
         ? process.env.STRIPE_PRICE_BUSINESS
         : process.env.STRIPE_PRICE_PRO;
 
-    await this.paymentProvider.schedulePlanChange(stripeSubId, nextPriceId);
+    try {
+      await this.paymentProvider.schedulePlanChange(stripeSubId, nextPriceId);
 
-    await this.subscriptionRepository.updateSubscription(subscription.id, {
-      plan: subscription.nextPlan,
-      nextPlan: null,
-    });
+      await this.subscriptionRepository.updateSubscription(subscription.id, {
+        plan: subscription.nextPlan,
+        nextPlan: null,
+      });
+    } catch (error) {
+      this.logger.error(
+        `Error scheduling plan change for subscription ${stripeSubId}: ${error.message}`
+      );
+    }
   }
   private async handleSubscriptionDeleted(event: StripeWebhookEvent) {
     const stripeSub = event.data.object;
