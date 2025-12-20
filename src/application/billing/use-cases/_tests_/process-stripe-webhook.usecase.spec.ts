@@ -1,6 +1,7 @@
 import { createSubscriptionRepoMock } from 'src/tests/mocks/subscription-repo.mock';
 import { createBillingPaymentProviderMock } from 'src/tests/mocks/billing-payment-provider.mock';
 import { createUserRepoMock } from 'src/tests/mocks/user-repo.mock';
+
 import { ProcessStripeWebhookUseCase } from '../process-stripe-webhook.usecase';
 
 describe('ProcessStripeWebhookUseCase', () => {
@@ -14,6 +15,11 @@ describe('ProcessStripeWebhookUseCase', () => {
     process.env.STRIPE_PRICE_BUSINESS = 'price_business_test';
   });
 
+  afterAll(() => {
+    delete process.env.STRIPE_PRICE_PRO;
+    delete process.env.STRIPE_PRICE_BUSINESS;
+  });
+
   beforeEach(() => {
     subscriptionRepo = createSubscriptionRepoMock();
     userRepo = createUserRepoMock();
@@ -23,6 +29,10 @@ describe('ProcessStripeWebhookUseCase', () => {
       userRepo,
       paymentProvider,
     );
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   it('should handle checkout.session.completed event', async () => {
@@ -41,11 +51,12 @@ describe('ProcessStripeWebhookUseCase', () => {
     const user = { id: 'user1', email: 'user@example.com' };
     const stripeSubscription = {
       plan: { id: priceId },
+      current_period_end: 1735689600,
     };
 
     userRepo.findByEmail.mockResolvedValue(user as any);
     subscriptionRepo.findByUserId.mockResolvedValue(null);
-    paymentProvider.getStripeSubscription.mockResolvedValue(stripeSubscription);
+    paymentProvider.getStripeSubscription.mockResolvedValue(stripeSubscription as any);
     subscriptionRepo.create.mockResolvedValue({ id: 'sub1' } as any);
 
     await useCase.execute(event);
@@ -70,11 +81,18 @@ describe('ProcessStripeWebhookUseCase', () => {
       nextPlan: null,
     };
 
+    const stripeSubscription = {
+      status: 'active',
+      current_period_end: 1735689600,
+    };
+
     subscriptionRepo.findByStripeSubId.mockResolvedValue(subscription as any);
+    paymentProvider.getStripeSubscription.mockResolvedValue(stripeSubscription as any);
 
     await useCase.execute(event);
 
     expect(subscriptionRepo.findByStripeSubId).toHaveBeenCalledWith('sub_123');
+    expect(paymentProvider.getStripeSubscription).toHaveBeenCalledWith('sub_123');
     expect(subscriptionRepo.updateStripeSubscription).toHaveBeenCalled();
   });
 

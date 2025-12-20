@@ -4,4 +4,7 @@ export const createUserRepoMock = () => ({
     create: jest.fn(),
     updateRefreshTokenHash: jest.fn(),
     updatePassword: jest.fn(),
+    updateEmail: jest.fn(),
+    delete: jest.fn(),
+    getUserCreatedAt: jest.fn(),
 });
