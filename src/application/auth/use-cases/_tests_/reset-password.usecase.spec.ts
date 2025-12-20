@@ -1,10 +1,13 @@
 import { BadRequestException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
+
 import { createUserRepoMock } from 'src/tests/mocks/user-repo.mock';
 import { createPasswordResetServiceMock } from 'src/tests/mocks/password-reset-service.mock';
+
 import { ResetPasswordUseCase } from '../reset-password.usecase';
 
 jest.mock('bcrypt', () => ({
-    hash: jest.fn((password: string) => Promise.resolve(`hashed-${password}`)),
+    hash: jest.fn(),
 }));
 
 describe('ResetPasswordUseCase', () => {
@@ -15,8 +18,16 @@ describe('ResetPasswordUseCase', () => {
     beforeEach(() => {
         userRepo = createUserRepoMock();
         passwordResetService = createPasswordResetServiceMock();
+        
+        (bcrypt.hash as jest.Mock).mockImplementation((password: string) => 
+            Promise.resolve(`hashed-${password}`)
+        );
 
         useCase = new ResetPasswordUseCase(userRepo, passwordResetService);
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
     });
 
     it('should throw BadRequestException when token is invalid', async () => {
