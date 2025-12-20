@@ -25,7 +25,7 @@ export class PrismaUserPreferencesRepository implements IUserPreferencesReposito
     );
   }
 
-  async upsert(userId: string, data: { tone: string; signature: string }): Promise<UserPreferences> {
+  async upsert(userId: string, data: { tone: string; signature: string; autoImport: boolean; autoAiSend: boolean }): Promise<UserPreferences> {
     const prefs = await this.prisma.userPreferences.upsert({
       where: { userId },
       create: { userId, ...data },

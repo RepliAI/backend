@@ -3,6 +3,7 @@ import { Injectable, ForbiddenException, NotFoundException, Inject } from "@nest
 import { ITicketRepository, TICKET_REPOSITORY } from "src/domain/tickets/repositories/ticket.repository";
 import { OpenAiService } from "src/infrastructure/integrations/openai/openai.service";
 import { IUserPreferencesRepository, USER_PREFERENCES_REPOSITORY } from "src/domain/user-preferences/repositories/user-preferences.repository";
+import { CheckAiResponseLimitUseCase } from 'src/application/plans/use-cases/check-ai-response-limit.usecase';
 
 @Injectable()
 export class GenerateAiReplyUseCase {
@@ -13,9 +14,11 @@ export class GenerateAiReplyUseCase {
 
     @Inject(USER_PREFERENCES_REPOSITORY)
     private readonly prefsRepo: IUserPreferencesRepository,
+    private readonly checkAiResponseLimit: CheckAiResponseLimitUseCase,
   ) {}
 
   async execute(ticketId: string, userId: string): Promise<string> {
+    await this.checkAiResponseLimit.execute(userId);
     const ticket = await this.ticketRepository.findById(ticketId, userId);
     if (!ticket) throw new NotFoundException(`Ticket with ID ${ticketId} not found.`);
 
@@ -36,6 +39,8 @@ export class GenerateAiReplyUseCase {
       user: userPrompt,
     });
 
+    await this.checkAiResponseLimit.incrementUsage(userId);
+    
     return aiReply;
   }
 

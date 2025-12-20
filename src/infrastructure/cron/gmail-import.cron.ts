@@ -1,7 +1,10 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject, Logger, ForbiddenException } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+
 import { IGMAIL_SERVICE } from 'src/domain/gmail/service/gmail.service';
 import { ImportEmailsUseCase } from 'src/application/gmail/use-cases/import-emails.usecase';
+import { CheckPlanFeatureUseCase } from 'src/application/plans/use-cases/check-plan-feature.usecase';
+import { IUserPreferencesRepository, USER_PREFERENCES_REPOSITORY } from 'src/domain/user-preferences/repositories/user-preferences.repository';
 
 @Injectable()
 export class GmailImportCron {
@@ -10,6 +13,9 @@ export class GmailImportCron {
   constructor(
     private readonly importEmailsUseCase: ImportEmailsUseCase,
     @Inject(IGMAIL_SERVICE) private readonly gmailService,
+    private readonly checkPlanFeature: CheckPlanFeatureUseCase,
+    @Inject(USER_PREFERENCES_REPOSITORY)
+    private readonly userPreferencesRepository: IUserPreferencesRepository,
   ) {}
 
   @Cron(CronExpression.EVERY_MINUTE)
@@ -24,6 +30,12 @@ export class GmailImportCron {
 
     for (const user of users) {
       try {
+        await this.checkPlanFeature.checkAutoImport(user.userId);
+        const preferences = await this.userPreferencesRepository.getByUserId(user.userId);
+        if (!preferences || !preferences.autoImport) {
+          continue;
+        }
+
         const result = await this.importEmailsUseCase.execute({
           userId: user.userId,
         });
@@ -33,6 +45,12 @@ export class GmailImportCron {
         );
 
       } catch (err: any) {
+        if (err instanceof ForbiddenException) {
+          this.logger.error(
+            `Erreur import Gmail pour user=${user.userId}: ${err.message}`,
+          );
+          continue;
+        }
         const errorMessage = err?.message || err?.toString() || 'Unknown error';
         this.logger.error(
           `Erreur import Gmail pour user=${user.userId}: ${errorMessage}`,
