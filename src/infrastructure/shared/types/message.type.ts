@@ -1,6 +1,3 @@
-/**
- * Type représentant un message tel que retourné par la base de données
- */
 export interface Message {
     id: string;
     ticketId: string;
@@ -10,6 +7,7 @@ export interface Message {
     content: string;
     date: Date;
     threadId: string | null;
+    isRisky?: boolean;
     createdAt?: Date;
     updatedAt?: Date;
 }

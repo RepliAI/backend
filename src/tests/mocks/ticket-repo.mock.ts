@@ -12,5 +12,6 @@ export function createTicketRepoMock(): jest.Mocked<ITicketRepository> {
     addMessage: jest.fn(),
     updateStatus: jest.fn(),
     findByThreadId: jest.fn(),
+    markMessageAsRisky: jest.fn(),
   };
 }

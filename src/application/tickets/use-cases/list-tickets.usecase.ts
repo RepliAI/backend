@@ -21,7 +21,7 @@ export class ListTicketsUseCase {
       pageSize,
       from: input.from,
       to: input.to,
-
+      isRisky: input.isRisky,
     });
 
     const output = new PaginatedTicketsOutput();

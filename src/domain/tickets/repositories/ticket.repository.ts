@@ -12,6 +12,7 @@ export interface ListTicketsParams {
   pageSize: number;
   from?: Date;
   to?: Date;
+  isRisky?: boolean;
 }
 
 export interface PaginatedTicketsResult {
@@ -29,4 +30,5 @@ export interface ITicketRepository {
   addMessage(ticketId: string, message: Message): Promise<void>
   updateStatus(ticketId: string, status: string): Promise<void>;
   findByThreadId(threadId: string): Promise<Ticket | null>;
+  markMessageAsRisky(messageId: string): Promise<void>;
 }

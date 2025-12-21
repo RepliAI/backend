@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, IsString, Min, Max, IsDateString } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsString, Min, Max, IsDateString, IsBoolean } from 'class-validator';
 import { TicketStatus } from 'src/domain/tickets/value-objects/ticket-status.vo';
 
 export class ListTicketsQueryDto {
@@ -18,6 +18,10 @@ export class ListTicketsQueryDto {
   @IsOptional()
   @IsDateString()
   to?: string;
+
+  @IsOptional()
+  @IsString()
+  isRisky?: string | boolean;
 
   @IsOptional()
   @Type(() => Number)

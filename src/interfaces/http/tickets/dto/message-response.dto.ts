@@ -1,4 +1,4 @@
-import { IsString, IsDate } from 'class-validator';
+import { IsString, IsDate, IsOptional, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Message } from 'src/domain/tickets/entities/message.entity';
 
@@ -19,6 +19,10 @@ export class MessageResponseDto {
   @Type(() => Date)
   date: Date;
 
+  @IsOptional()
+  @IsBoolean()
+  isRisky?: boolean;
+
   static fromDomain(message: Message): MessageResponseDto {
     const dto = new MessageResponseDto();
     dto.id = message.id;
@@ -26,6 +30,7 @@ export class MessageResponseDto {
     dto.to = message.to;
     dto.content = message.content;
     dto.date = message.date;
+    dto.isRisky = message.isRisky;
     return dto;
   }
 }

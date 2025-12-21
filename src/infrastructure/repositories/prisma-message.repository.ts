@@ -23,6 +23,8 @@ export class PrismaMessageRepository implements IMessageRepository {
       record.to,
       record.content,
       record.date,
+      record.threadId ?? undefined,
+      record.isRisky ?? false,
     );
   }
 
@@ -36,6 +38,8 @@ export class PrismaMessageRepository implements IMessageRepository {
         to: message.to,
         content: message.content,
         date: message.date,
+        threadId: message.threadId ?? null,
+        isRisky: message.isRisky ?? false,
       },
     });
   }
