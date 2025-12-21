@@ -1,8 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import OpenAI from "openai";
+import { IAiService } from "src/domain/shared/services/ai-service.interface";
 
 @Injectable()
-export class OpenAiService {
+export class OpenAiService implements IAiService {
   private client: OpenAI;
 
   constructor() {

@@ -1,6 +1,6 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 
-import { MailerService } from 'src/infrastructure/mailer/mailer.service';
+import { I_MAILER_SERVICE, IMailerService } from 'src/domain/shared/services/mailer-service.interface';
 import {
   IPasswordResetService,
   PASSWORD_RESET_SERVICE,
@@ -19,7 +19,8 @@ export class ForgotPasswordUseCase {
     @Inject(PASSWORD_RESET_SERVICE)
     private readonly passwordReset: IPasswordResetService,
 
-    private readonly mailer: MailerService,
+    @Inject(I_MAILER_SERVICE)
+    private readonly mailer: IMailerService,
   ) { }
 
   async execute(email: string): Promise<void> {

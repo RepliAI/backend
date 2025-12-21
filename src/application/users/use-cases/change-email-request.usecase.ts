@@ -2,7 +2,7 @@ import { Inject, Injectable, BadRequestException, ConflictException } from '@nes
 
 import { IUserRepository, USER_REPOSITORY } from 'src/domain/users/repositories/user.repository';
 import { IPasswordResetService, PASSWORD_RESET_SERVICE } from 'src/domain/auth/services/password-reset.service';
-import { MailerService } from 'src/infrastructure/mailer/mailer.service';
+import { I_MAILER_SERVICE, IMailerService } from 'src/domain/shared/services/mailer-service.interface';
 
 @Injectable()
 export class ChangeEmailRequestUseCase {
@@ -11,7 +11,8 @@ export class ChangeEmailRequestUseCase {
         private readonly userRepository: IUserRepository,
         @Inject(PASSWORD_RESET_SERVICE)
         private readonly passwordResetService: IPasswordResetService,
-        private readonly mailer: MailerService,
+        @Inject(I_MAILER_SERVICE)
+        private readonly mailer: IMailerService,
     ) { }
 
     async execute(userId: string, newEmail: string): Promise<void> {

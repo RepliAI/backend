@@ -323,3 +323,36 @@ describe('PrismaTicketRepository - listWithFilters', () => {
   });
 });
 
+describe('PrismaTicketRepository - markMessageAsRisky', () => {
+  let repository: PrismaTicketRepository;
+  let prisma: jest.Mocked<PrismaService>;
+
+  beforeEach(() => {
+    prisma = {
+      message: {
+        update: jest.fn(),
+      },
+    } as any;
+
+    repository = new PrismaTicketRepository(prisma);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should mark a message as risky', async () => {
+    (prisma.message.update as jest.Mock).mockResolvedValue({
+      id: 'msg1',
+      isRisky: true,
+    });
+
+    await repository.markMessageAsRisky('msg1');
+
+    expect(prisma.message.update).toHaveBeenCalledWith({
+      where: { id: 'msg1' },
+      data: { isRisky: true },
+    });
+  });
+});
+

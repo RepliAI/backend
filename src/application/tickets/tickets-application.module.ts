@@ -6,6 +6,7 @@ import { IdGeneratorModule } from 'src/infrastructure/shared/id-generator/id-gen
 import { GmailModule } from 'src/infrastructure/integrations/gmail/gmail.module';
 import { UserPreferencesInfrastructureModule } from 'src/infrastructure/user-preferences/user-preference-infrastructure.module';
 import { PlansApplicationModule } from 'src/application/plans/plan-application.module';
+import { WebSocketModule } from 'src/infrastructure/websocket/websocket.module';
 
 
 import { ListTicketsUseCase } from './use-cases/list-tickets.usecase';
@@ -25,7 +26,8 @@ import { UserPreferencesApplicationModule } from '../user-preferences/user-prefe
     IdGeneratorModule,
     UserPreferencesInfrastructureModule,
     PlansApplicationModule,
-    UserPreferencesApplicationModule
+    UserPreferencesApplicationModule,
+    WebSocketModule,
   ],
   providers: [
     ListTicketsUseCase,
@@ -46,4 +48,5 @@ import { UserPreferencesApplicationModule } from '../user-preferences/user-prefe
     AutoReplyToTicketUseCase,
   ],
 })
+
 export class TicketsApplicationModule {}

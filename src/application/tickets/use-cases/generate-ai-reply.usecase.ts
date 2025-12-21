@@ -1,7 +1,7 @@
 import { Injectable, ForbiddenException, NotFoundException, Inject } from "@nestjs/common";
 
 import { ITicketRepository, TICKET_REPOSITORY } from "src/domain/tickets/repositories/ticket.repository";
-import { OpenAiService } from "src/infrastructure/integrations/openai/openai.service";
+import { I_AI_SERVICE, IAiService } from "src/domain/shared/services/ai-service.interface";
 import { IUserPreferencesRepository, USER_PREFERENCES_REPOSITORY } from "src/domain/user-preferences/repositories/user-preferences.repository";
 import { CheckAiResponseLimitUseCase } from 'src/application/plans/use-cases/check-ai-response-limit.usecase';
 
@@ -10,7 +10,8 @@ export class GenerateAiReplyUseCase {
   constructor(
     @Inject(TICKET_REPOSITORY)
     private readonly ticketRepository: ITicketRepository,
-    private readonly openAiService: OpenAiService,
+    @Inject(I_AI_SERVICE)
+    private readonly aiService: IAiService,
 
     @Inject(USER_PREFERENCES_REPOSITORY)
     private readonly prefsRepo: IUserPreferencesRepository,
@@ -34,7 +35,7 @@ export class GenerateAiReplyUseCase {
     const systemPrompt = this.getSystemPrompt();
     const userPrompt = this.getUserPrompt(lastMessage.content, prefs);
 
-    const aiReply = await this.openAiService.generateReply({
+    const aiReply = await this.aiService.generateReply({
       system: systemPrompt,
       user: userPrompt,
     });

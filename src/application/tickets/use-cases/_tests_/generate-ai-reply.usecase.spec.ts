@@ -2,7 +2,7 @@ import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
 import { createTicketRepoMock } from 'src/tests/mocks/ticket-repo.mock';
 import { createUserPreferencesRepoMock } from 'src/tests/mocks/user-preferences-repo.mock';
-import { OpenAiService } from 'src/infrastructure/integrations/openai/openai.service';
+import { createAiServiceMock } from 'src/tests/mocks/ai-service.mock';
 import { Ticket } from 'src/domain/tickets/entities/ticket.entity';
 import { Message } from 'src/domain/tickets/entities/message.entity';
 
@@ -31,20 +31,19 @@ const createCheckAiResponseLimitUseCaseMock = () => ({
 describe('GenerateAiReplyUseCase', () => {
   let useCase: GenerateAiReplyUseCase;
   let ticketRepo: ReturnType<typeof createTicketRepoMock>;
-  let openAiService: jest.Mocked<OpenAiService>;
+  let aiService: ReturnType<typeof createAiServiceMock>;
   let userPreferencesRepo: ReturnType<typeof createUserPreferencesRepoMock>;
   let checkAiResponseLimit: ReturnType<typeof createCheckAiResponseLimitUseCaseMock>;
 
   beforeEach(() => {
     ticketRepo = createTicketRepoMock();
-    openAiService = new OpenAiService() as jest.Mocked<OpenAiService>;
-    openAiService.generateReply = jest.fn();
+    aiService = createAiServiceMock();
     userPreferencesRepo = createUserPreferencesRepoMock();
     checkAiResponseLimit = createCheckAiResponseLimitUseCaseMock();
 
     useCase = new GenerateAiReplyUseCase(
       ticketRepo,
-      openAiService,
+      aiService,
       userPreferencesRepo,
       checkAiResponseLimit as any,
     );
@@ -106,13 +105,13 @@ describe('GenerateAiReplyUseCase', () => {
     checkAiResponseLimit.execute.mockResolvedValue(undefined);
     ticketRepo.findById.mockResolvedValue(ticket);
     userPreferencesRepo.getByUserId.mockResolvedValue(null);
-    openAiService.generateReply.mockResolvedValue('AI_REPLY');
+    aiService.generateReply.mockResolvedValue('AI_REPLY');
 
     await useCase.execute('t1', 'user1');
 
     expect(checkAiResponseLimit.execute).toHaveBeenCalledWith('user1');
     expect(checkAiResponseLimit.execute).toHaveBeenCalledTimes(1);
-    expect(openAiService.generateReply).toHaveBeenCalledTimes(1);
+    expect(aiService.generateReply).toHaveBeenCalledTimes(1);
   });
 
   it('should increment usage after successful generation', async () => {
@@ -139,13 +138,13 @@ describe('GenerateAiReplyUseCase', () => {
     checkAiResponseLimit.execute.mockResolvedValue(undefined);
     ticketRepo.findById.mockResolvedValue(ticket);
     userPreferencesRepo.getByUserId.mockResolvedValue(null);
-    openAiService.generateReply.mockResolvedValue('AI_REPLY');
+    aiService.generateReply.mockResolvedValue('AI_REPLY');
 
     await useCase.execute('t1', 'user1');
 
     expect(checkAiResponseLimit.incrementUsage).toHaveBeenCalledWith('user1');
     expect(checkAiResponseLimit.incrementUsage).toHaveBeenCalledTimes(1);
-    expect(openAiService.generateReply).toHaveBeenCalledTimes(1);
+    expect(aiService.generateReply).toHaveBeenCalledTimes(1);
   });
 
   it('should not increment usage if generation fails', async () => {
@@ -172,7 +171,7 @@ describe('GenerateAiReplyUseCase', () => {
     checkAiResponseLimit.execute.mockResolvedValue(undefined);
     ticketRepo.findById.mockResolvedValue(ticket);
     userPreferencesRepo.getByUserId.mockResolvedValue(null);
-    openAiService.generateReply.mockRejectedValue(new Error('OpenAI error'));
+    aiService.generateReply.mockRejectedValue(new Error('OpenAI error'));
 
     await expect(useCase.execute('t1', 'user1')).rejects.toThrow('OpenAI error');
 
@@ -203,14 +202,14 @@ describe('GenerateAiReplyUseCase', () => {
     checkAiResponseLimit.execute.mockResolvedValue(undefined);
     ticketRepo.findById.mockResolvedValue(ticket);
     userPreferencesRepo.getByUserId.mockResolvedValue(null);
-    openAiService.generateReply.mockResolvedValue('AI_REPLY');
+    aiService.generateReply.mockResolvedValue('AI_REPLY');
 
     await useCase.execute('t1', 'user1');
 
-    expect(openAiService.generateReply).toHaveBeenCalledTimes(1);
+    expect(aiService.generateReply).toHaveBeenCalledTimes(1);
     expect(userPreferencesRepo.getByUserId).toHaveBeenCalledWith('user1');
 
-    const callArg = openAiService.generateReply.mock.calls[0][0];
+    const callArg = aiService.generateReply.mock.calls[0][0];
     expect(callArg.user).toContain("Bonjour, j'ai un problème.");
     expect(callArg.system).toContain('assistant spécialisé en support client professionnel');
   });
@@ -276,7 +275,7 @@ describe('GenerateAiReplyUseCase', () => {
     checkAiResponseLimit.execute.mockResolvedValue(undefined);
     ticketRepo.findById.mockResolvedValue(ticket);
     userPreferencesRepo.getByUserId.mockResolvedValue(null);
-    openAiService.generateReply.mockResolvedValue('AI_REPLY');
+    aiService.generateReply.mockResolvedValue('AI_REPLY');
 
     const result = await useCase.execute('t1', 'user1');
 
@@ -315,11 +314,11 @@ describe('GenerateAiReplyUseCase', () => {
       autoImport: true,
       autoAiSend: false,
     } as any);
-    openAiService.generateReply.mockResolvedValue('AI_REPLY');
+    aiService.generateReply.mockResolvedValue('AI_REPLY');
 
     await useCase.execute('t1', 'user1');
 
-    const callArg = openAiService.generateReply.mock.calls[0][0];
+    const callArg = aiService.generateReply.mock.calls[0][0];
     expect(callArg.user).toContain('tone: "friendly"');
     expect(callArg.user).toContain('signature: """Best regards"""');
     expect(checkAiResponseLimit.incrementUsage).toHaveBeenCalledWith('user1');

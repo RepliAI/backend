@@ -3,9 +3,10 @@ import * as nodemailer from "nodemailer";
 import * as fs from "fs";
 import * as path from "path";
 import * as Handlebars from "handlebars";
+import { IMailerService } from "src/domain/shared/services/mailer-service.interface";
 
 @Injectable()
-export class MailerService {
+export class MailerService implements IMailerService {
   private transporter;
 
   constructor() {

@@ -4,6 +4,8 @@ import { ITicketRepository, TICKET_REPOSITORY } from 'src/domain/tickets/reposit
 import { Message } from 'src/domain/tickets/entities/message.entity';
 import { ID_GENERATOR, IIdGenerator } from 'src/domain/shared/services/id-generator.service';
 import { IGMAIL_SERVICE, IGmailService } from 'src/domain/gmail/service/gmail.service';
+import { I_AI_SERVICE, IAiService } from 'src/domain/shared/services/ai-service.interface';
+import { I_EVENT_SERVICE, IEventService } from 'src/domain/shared/services/event-service.interface';
 
 import { AddMessageInput } from '../dto/add-message.input';
 
@@ -18,6 +20,10 @@ export class AddMessageToTicketUseCase {
 
     @Inject(IGMAIL_SERVICE)
     private readonly gmailService: IGmailService,
+    @Inject(I_AI_SERVICE)
+    private readonly aiService: IAiService,
+    @Inject(I_EVENT_SERVICE)
+    private readonly eventService: IEventService,
   ) {}
 
   async execute(input: AddMessageInput): Promise<Message> {
@@ -64,7 +70,23 @@ export class AddMessageToTicketUseCase {
       new Date(),
     );
 
-    await this.ticketRepository.addMessage(ticket.id, message); 
+    await this.ticketRepository.addMessage(ticket.id, message);
+    
+    if (lastMessage.from !== 'agent' && lastMessage.from !== 'ai' && !lastMessage.isRisky) {
+      const isSafe = await this.aiService.isSafeForAutoReply(lastMessage.content);
+      if (!isSafe) {
+        await this.ticketRepository.markMessageAsRisky(lastMessage.id);
+      }
+    }
+
+    if (!input.isAutoReply) {
+      this.eventService.emitNewMessage(input.userId, {
+        ticketId: ticket.id,
+        ticketSubject: ticket.subject,
+        content: message.content,
+      });
+    }
+    
     ticket.markPending();
     await this.ticketRepository.updateStatus(ticket.id, ticket.status);
 
