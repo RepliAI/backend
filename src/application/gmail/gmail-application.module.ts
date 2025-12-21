@@ -4,6 +4,7 @@ import { GmailInfrastructureModule } from 'src/infrastructure/gmail/gmail-infras
 import { TicketsInfrastructureModule } from 'src/infrastructure/tickets/tickets-infrastructure.module';
 import { IdGeneratorModule } from 'src/infrastructure/shared/id-generator/id-generator.module';
 import { PlansApplicationModule } from 'src/application/plans/plan-application.module';
+import { TicketsApplicationModule } from 'src/application/tickets/tickets-application.module';
 
 import { GetGmailAuthUrlUseCase } from './use-cases/get-gmail-auth-url.usecase';
 import { HandleGmailCallbackUseCase } from './use-cases/handle-gmail-callback.usecase';
@@ -17,6 +18,7 @@ import { GetEligibleUsersForImportUseCase } from './use-cases/get-eligible-users
         TicketsInfrastructureModule,
         IdGeneratorModule,
         PlansApplicationModule,
+        TicketsApplicationModule,
     ],
     providers: [
         GetGmailAuthUrlUseCase,

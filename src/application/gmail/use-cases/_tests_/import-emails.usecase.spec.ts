@@ -7,6 +7,11 @@ import { createIdGeneratorMock } from 'src/tests/mocks/id-generalor.mock';
 
 import { ImportEmailsUseCase } from '../import-emails.usecase';
 import { ImportEmailsInput } from '../../dto/import-email.dto';
+import { AutoReplyToTicketUseCase } from 'src/application/tickets/use-cases/auto-reply-to-ticket.usecase';
+
+const createAutoReplyToTicketUseCaseMock = () => ({
+  execute: jest.fn().mockResolvedValue(undefined),
+});
 
 describe('ImportEmailsUseCase', () => {
   it('creates a ticket and message when Gmail message is new', async () => {
@@ -30,10 +35,13 @@ describe('ImportEmailsUseCase', () => {
       .mockReturnValueOnce('ticket-id-1')
       .mockReturnValueOnce('message-id-1');
 
+    const autoReplyToTicket = createAutoReplyToTicketUseCaseMock();
+
     const useCase = new ImportEmailsUseCase(
       gmailService,
       ticketRepo,
       idGenerator,
+      autoReplyToTicket as any,
     );
 
     const input = new ImportEmailsInput();
@@ -87,11 +95,13 @@ describe('ImportEmailsUseCase', () => {
     );
 
     const idGenerator = createIdGeneratorMock();
+    const autoReplyToTicket = createAutoReplyToTicketUseCaseMock();
 
     const useCase = new ImportEmailsUseCase(
       gmailService,
       ticketRepo,
       idGenerator,
+      autoReplyToTicket as any,
     );
 
     const input = new ImportEmailsInput();
@@ -143,10 +153,13 @@ describe('ImportEmailsUseCase', () => {
     const idGenerator = createIdGeneratorMock();
     idGenerator.generate.mockReturnValue('message-id-2');
 
+    const autoReplyToTicket = createAutoReplyToTicketUseCaseMock();
+
     const useCase = new ImportEmailsUseCase(
       gmailService,
       ticketRepo,
       idGenerator,
+      autoReplyToTicket as any,
     );
 
     const input = new ImportEmailsInput();
@@ -158,5 +171,93 @@ describe('ImportEmailsUseCase', () => {
     expect(ticketRepo.create).not.toHaveBeenCalled();
     expect(ticketRepo.addMessage).toHaveBeenCalledTimes(1);
     expect(idGenerator.generate).toHaveBeenCalledTimes(1);
+  });
+
+  it('should trigger auto-reply when message is from customer (not agent)', async () => {
+    const mockEmail = createMockGmailEmail({
+      id: 'gmail-3',
+      subject: 'Question client',
+      content: 'Bonjour, j\'ai une question',
+      threadId: 'thread-2',
+      from: 'customer@example.com',
+    });
+
+    const gmailService: jest.Mocked<IGmailService> = {
+      fetchRecentMessages: jest.fn().mockResolvedValue([mockEmail]),
+    } as any;
+
+    const ticketRepo = createTicketRepoMock();
+    ticketRepo.findMessageByGmailId.mockResolvedValue(null);
+    ticketRepo.findByThreadId.mockResolvedValue(null);
+
+    const idGenerator = createIdGeneratorMock();
+    idGenerator.generate
+      .mockReturnValueOnce('ticket-id-2')
+      .mockReturnValueOnce('message-id-3');
+
+    const autoReplyToTicket = createAutoReplyToTicketUseCaseMock();
+
+    const useCase = new ImportEmailsUseCase(
+      gmailService,
+      ticketRepo,
+      idGenerator,
+      autoReplyToTicket as any,
+    );
+
+    const input = new ImportEmailsInput();
+    input.userId = 'user-123';
+    const result = await useCase.execute(input);
+
+    expect(result.imported).toBe(1);
+    expect(ticketRepo.addMessage).toHaveBeenCalledTimes(1);
+    
+    // Wait a bit to ensure async auto-reply call is made
+    await new Promise(resolve => setTimeout(resolve, 10));
+    
+    expect(autoReplyToTicket.execute).toHaveBeenCalledWith('ticket-id-2', 'user-123');
+  });
+
+  it('should not trigger auto-reply when message is from agent', async () => {
+    const mockEmail = createMockGmailEmail({
+      id: 'gmail-4',
+      subject: 'Réponse agent',
+      content: 'Réponse du support',
+      threadId: 'thread-3',
+      from: 'agent',
+    });
+
+    const gmailService: jest.Mocked<IGmailService> = {
+      fetchRecentMessages: jest.fn().mockResolvedValue([mockEmail]),
+    } as any;
+
+    const ticketRepo = createTicketRepoMock();
+    ticketRepo.findMessageByGmailId.mockResolvedValue(null);
+    ticketRepo.findByThreadId.mockResolvedValue(null);
+
+    const idGenerator = createIdGeneratorMock();
+    idGenerator.generate
+      .mockReturnValueOnce('ticket-id-3')
+      .mockReturnValueOnce('message-id-4');
+
+    const autoReplyToTicket = createAutoReplyToTicketUseCaseMock();
+
+    const useCase = new ImportEmailsUseCase(
+      gmailService,
+      ticketRepo,
+      idGenerator,
+      autoReplyToTicket as any,
+    );
+
+    const input = new ImportEmailsInput();
+    input.userId = 'user-123';
+    const result = await useCase.execute(input);
+
+    expect(result.imported).toBe(1);
+    expect(ticketRepo.addMessage).toHaveBeenCalledTimes(1);
+    
+    // Wait a bit to ensure async auto-reply call would have been made
+    await new Promise(resolve => setTimeout(resolve, 10));
+    
+    expect(autoReplyToTicket.execute).not.toHaveBeenCalled();
   });
 });

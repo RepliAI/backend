@@ -14,6 +14,9 @@ import { GenerateAiReplyUseCase } from './use-cases/generate-ai-reply.usecase';
 import { CreateTicketUseCase } from './use-cases/create-ticket.usecase';
 import { AddMessageToTicketUseCase } from './use-cases/add-message.usecase';
 import { UpdateTicketStatusUseCase } from './use-cases/update-status.usecase';
+import { AutoReplyToTicketUseCase } from './use-cases/auto-reply-to-ticket.usecase';
+import { UserPreferencesApplicationModule } from '../user-preferences/user-preferences-application.module';
+
 @Module({
   imports: [
     GmailModule,
@@ -22,6 +25,7 @@ import { UpdateTicketStatusUseCase } from './use-cases/update-status.usecase';
     IdGeneratorModule,
     UserPreferencesInfrastructureModule,
     PlansApplicationModule,
+    UserPreferencesApplicationModule
   ],
   providers: [
     ListTicketsUseCase,
@@ -30,6 +34,7 @@ import { UpdateTicketStatusUseCase } from './use-cases/update-status.usecase';
     CreateTicketUseCase,
     AddMessageToTicketUseCase,
     UpdateTicketStatusUseCase,
+    AutoReplyToTicketUseCase,
   ],
   exports: [
     ListTicketsUseCase,
@@ -38,6 +43,7 @@ import { UpdateTicketStatusUseCase } from './use-cases/update-status.usecase';
     CreateTicketUseCase,
     AddMessageToTicketUseCase,
     UpdateTicketStatusUseCase,
+    AutoReplyToTicketUseCase,
   ],
 })
 export class TicketsApplicationModule {}

@@ -48,7 +48,7 @@ describe('AddMessageToTicketUseCase', () => {
     );
   });
 
-  it('should append a new message to the ticket', async () => {
+  it('should append a new message to the ticket with from="agent" by default', async () => {
     const existingMessage = new Message(
       'msg1',
       't1',
@@ -94,6 +94,48 @@ describe('AddMessageToTicketUseCase', () => {
     expect(result.id).toBe('msg123');
     expect(result.content).toBe('Hello world');
     expect(result.ticketId).toBe('t1');
+    expect(result.from).toBe('agent');
+  });
+
+  it('should append a message with from="ai" when isAutoReply is true', async () => {
+    const existingMessage = new Message(
+      'msg1',
+      't1',
+      'gmail-1',
+      'customer@example.com',
+      'agent',
+      'Initial message',
+      new Date(),
+      'thread-1',
+    );
+
+    const ticket = new Ticket(
+      't1',
+      'user1',
+      'subject',
+      'open',
+      new Date(),
+      [existingMessage],
+    );
+
+    ticketRepository.findById.mockResolvedValue(ticket);
+    idGenerator.generate.mockReturnValue('msg456');
+    gmailServiceMock.sendReply.mockResolvedValue(undefined);
+
+    const input = new AddMessageInput();
+    input.ticketId = 't1';
+    input.userId = 'user1';
+    input.content = 'AI generated reply';
+    input.gmailId = 'gmail-3';
+    input.isAutoReply = true;
+
+    const result = await useCase.execute(input);
+
+    expect(result.from).toBe('ai');
+    expect(result.content).toBe('AI generated reply');
+    expect(ticketRepository.addMessage).toHaveBeenCalledTimes(1);
+    const addedMessage = (ticketRepository.addMessage as jest.Mock).mock.calls[0][1];
+    expect(addedMessage.from).toBe('ai');
   });
 
   it('should call repository.update with updated ticket', async () => {
