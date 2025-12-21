@@ -2,7 +2,7 @@ import { ForbiddenException } from '@nestjs/common';
 
 import { createTicketRepoMock } from 'src/tests/mocks/ticket-repo.mock';
 import { createIdGeneratorMock } from 'src/tests/mocks/id-generalor.mock';
-import { createOpenAiServiceMock } from 'src/tests/mocks/openai-service.mock';
+import { createAiServiceMock } from 'src/tests/mocks/ai-service.mock';
 import { Ticket } from 'src/domain/tickets/entities/ticket.entity';
 import { Message } from 'src/domain/tickets/entities/message.entity';
 
@@ -36,7 +36,7 @@ describe('AutoReplyToTicketUseCase', () => {
   let getUserPreferences: ReturnType<typeof createGetUserPreferencesUseCaseMock>;
   let generateAiReply: ReturnType<typeof createGenerateAiReplyUseCaseMock>;
   let addMessage: ReturnType<typeof createAddMessageToTicketUseCaseMock>;
-  let openAiService: ReturnType<typeof createOpenAiServiceMock>;
+  let aiService: ReturnType<typeof createAiServiceMock>;
   let idGenerator: ReturnType<typeof createIdGeneratorMock>;
 
   beforeEach(() => {
@@ -45,7 +45,7 @@ describe('AutoReplyToTicketUseCase', () => {
     getUserPreferences = createGetUserPreferencesUseCaseMock();
     generateAiReply = createGenerateAiReplyUseCaseMock();
     addMessage = createAddMessageToTicketUseCaseMock();
-    openAiService = createOpenAiServiceMock();
+    aiService = createAiServiceMock();
     idGenerator = createIdGeneratorMock();
 
     useCase = new AutoReplyToTicketUseCase(
@@ -54,7 +54,7 @@ describe('AutoReplyToTicketUseCase', () => {
       getUserPreferences as any,
       generateAiReply as any,
       addMessage as any,
-      openAiService,
+      aiService,
       idGenerator,
     );
   });
@@ -225,12 +225,12 @@ describe('AutoReplyToTicketUseCase', () => {
     );
     const ticket = new Ticket('t1', 'user1', 'subject', 'open', new Date(), [lastMessage]);
     ticketRepository.findById.mockResolvedValue(ticket);
-    openAiService.isSafeForAutoReply.mockResolvedValue(false);
+    aiService.isSafeForAutoReply.mockResolvedValue(false);
     ticketRepository.markMessageAsRisky.mockResolvedValue(undefined);
 
     await useCase.execute('ticket1', 'user1');
 
-    expect(openAiService.isSafeForAutoReply).toHaveBeenCalledWith('I am very angry and will sue you!');
+    expect(aiService.isSafeForAutoReply).toHaveBeenCalledWith('I am very angry and will sue you!');
     expect(generateAiReply.execute).not.toHaveBeenCalled();
     expect(ticketRepository.markMessageAsRisky).toHaveBeenCalledWith('msg1');
   });
@@ -255,13 +255,13 @@ describe('AutoReplyToTicketUseCase', () => {
     );
     const ticket = new Ticket('t1', 'user1', 'subject', 'open', new Date(), [lastMessage]);
     ticketRepository.findById.mockResolvedValue(ticket);
-    openAiService.isSafeForAutoReply.mockResolvedValue(true);
+    aiService.isSafeForAutoReply.mockResolvedValue(true);
     generateAiReply.execute.mockResolvedValue('AI generated reply');
     idGenerator.generate.mockReturnValue('gmail-msg-id');
 
     await useCase.execute('ticket1', 'user1');
 
-    expect(openAiService.isSafeForAutoReply).toHaveBeenCalledWith('Hello, I have a question');
+    expect(aiService.isSafeForAutoReply).toHaveBeenCalledWith('Hello, I have a question');
     expect(generateAiReply.execute).toHaveBeenCalledWith('ticket1', 'user1');
     expect(idGenerator.generate).toHaveBeenCalled();
     expect(addMessage.execute).toHaveBeenCalledWith({
@@ -293,7 +293,7 @@ describe('AutoReplyToTicketUseCase', () => {
     );
     const ticket = new Ticket('t1', 'user1', 'subject', 'open', new Date(), [lastMessage]);
     ticketRepository.findById.mockResolvedValue(ticket);
-    openAiService.isSafeForAutoReply.mockResolvedValue(true);
+    aiService.isSafeForAutoReply.mockResolvedValue(true);
     generateAiReply.execute.mockRejectedValue(new Error('AI service error'));
 
     await useCase.execute('ticket1', 'user1');
@@ -321,7 +321,7 @@ describe('AutoReplyToTicketUseCase', () => {
     );
     const ticket = new Ticket('t1', 'user1', 'subject', 'open', new Date(), [lastMessage]);
     ticketRepository.findById.mockResolvedValue(ticket);
-    openAiService.isSafeForAutoReply.mockResolvedValue(true);
+    aiService.isSafeForAutoReply.mockResolvedValue(true);
     generateAiReply.execute.mockResolvedValue('AI reply');
     idGenerator.generate.mockReturnValue('gmail-id');
     const addedMessage = new Message(

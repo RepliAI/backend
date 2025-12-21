@@ -5,6 +5,8 @@ import { TicketsInfrastructureModule } from 'src/infrastructure/tickets/tickets-
 import { IdGeneratorModule } from 'src/infrastructure/shared/id-generator/id-generator.module';
 import { PlansApplicationModule } from 'src/application/plans/plan-application.module';
 import { TicketsApplicationModule } from 'src/application/tickets/tickets-application.module';
+import { WebSocketModule } from 'src/infrastructure/websocket/websocket.module';
+import { OpenAiModule } from 'src/infrastructure/integrations/openai/openai.module';
 
 import { GetGmailAuthUrlUseCase } from './use-cases/get-gmail-auth-url.usecase';
 import { HandleGmailCallbackUseCase } from './use-cases/handle-gmail-callback.usecase';
@@ -19,6 +21,8 @@ import { GetEligibleUsersForImportUseCase } from './use-cases/get-eligible-users
         IdGeneratorModule,
         PlansApplicationModule,
         TicketsApplicationModule,
+        WebSocketModule,
+        OpenAiModule,
     ],
     providers: [
         GetGmailAuthUrlUseCase,

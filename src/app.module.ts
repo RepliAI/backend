@@ -11,6 +11,7 @@ import { CronModule } from './infrastructure/cron/cron.module';
 import { UserPreferencesModule } from './interfaces/http/user-preferences/user-preferences-http';
 import { BillingHttpModule } from './interfaces/http/billing/billing-http.module';
 import { ProfileHttpModule } from './interfaces/http/profile/profile-http.module';
+import { WebSocketModule } from './infrastructure/websocket/websocket.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { ProfileHttpModule } from './interfaces/http/profile/profile-http.module
     UserPreferencesModule,
     BillingHttpModule,
     ProfileHttpModule,
+    WebSocketModule,
   ],
 })
 export class AppModule { }

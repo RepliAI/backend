@@ -4,7 +4,7 @@ import { CheckPlanFeatureUseCase } from 'src/application/plans/use-cases/check-p
 import { GetUserPreferencesUseCase } from 'src/application/user-preferences/use-cases/get-user-preferences.usecase';
 import { ITicketRepository, TICKET_REPOSITORY } from 'src/domain/tickets/repositories/ticket.repository';
 import { ID_GENERATOR, IIdGenerator } from 'src/domain/shared/services/id-generator.service';
-import { OpenAiService } from 'src/infrastructure/integrations/openai/openai.service';
+import { I_AI_SERVICE, IAiService } from 'src/domain/shared/services/ai-service.interface';
 
 import { GenerateAiReplyUseCase } from './generate-ai-reply.usecase';
 import { AddMessageToTicketUseCase } from './add-message.usecase';
@@ -20,7 +20,8 @@ export class AutoReplyToTicketUseCase {
         private readonly getUserPreferences: GetUserPreferencesUseCase,
         private readonly generateAiReply: GenerateAiReplyUseCase,
         private readonly addMessage: AddMessageToTicketUseCase,
-        private readonly openAiService: OpenAiService,
+        @Inject(I_AI_SERVICE)
+        private readonly aiService: IAiService,
         @Inject(ID_GENERATOR)
         private readonly idGenerator: IIdGenerator,
     ) { }
@@ -57,7 +58,7 @@ export class AutoReplyToTicketUseCase {
                 return;
             }
 
-            const isSafe = await this.openAiService.isSafeForAutoReply(lastMessage.content);
+            const isSafe = await this.aiService.isSafeForAutoReply(lastMessage.content);
             if (!isSafe) {
                 this.logger.warn(
                     `Auto-reply blocked for ticket ${ticketId}: message content deemed unsafe for automatic response`

@@ -4,6 +4,8 @@ import { Message } from 'src/domain/tickets/entities/message.entity';
 import { createMockGmailEmail } from 'src/tests/mocks/gmail-message.mock';
 import { createTicketRepoMock } from 'src/tests/mocks/ticket-repo.mock';
 import { createIdGeneratorMock } from 'src/tests/mocks/id-generalor.mock';
+import { createAiServiceMock } from 'src/tests/mocks/ai-service.mock';
+import { createEventServiceMock } from 'src/tests/mocks/event-service.mock';
 
 import { ImportEmailsUseCase } from '../import-emails.usecase';
 import { ImportEmailsInput } from '../../dto/import-email.dto';
@@ -36,12 +38,17 @@ describe('ImportEmailsUseCase', () => {
       .mockReturnValueOnce('message-id-1');
 
     const autoReplyToTicket = createAutoReplyToTicketUseCaseMock();
+    const aiService = createAiServiceMock();
+    const eventService = createEventServiceMock();
+    aiService.isSafeForAutoReply.mockResolvedValue(true);
 
     const useCase = new ImportEmailsUseCase(
       gmailService,
       ticketRepo,
       idGenerator,
       autoReplyToTicket as any,
+      eventService,
+      aiService,
     );
 
     const input = new ImportEmailsInput();
@@ -96,12 +103,17 @@ describe('ImportEmailsUseCase', () => {
 
     const idGenerator = createIdGeneratorMock();
     const autoReplyToTicket = createAutoReplyToTicketUseCaseMock();
+    const aiService = createAiServiceMock();
+    const eventService = createEventServiceMock();
+    aiService.isSafeForAutoReply.mockResolvedValue(true);
 
     const useCase = new ImportEmailsUseCase(
       gmailService,
       ticketRepo,
       idGenerator,
       autoReplyToTicket as any,
+      eventService,
+      aiService,
     );
 
     const input = new ImportEmailsInput();
@@ -154,12 +166,17 @@ describe('ImportEmailsUseCase', () => {
     idGenerator.generate.mockReturnValue('message-id-2');
 
     const autoReplyToTicket = createAutoReplyToTicketUseCaseMock();
+    const aiService = createAiServiceMock();
+    const eventService = createEventServiceMock();
+    aiService.isSafeForAutoReply.mockResolvedValue(true);
 
     const useCase = new ImportEmailsUseCase(
       gmailService,
       ticketRepo,
       idGenerator,
       autoReplyToTicket as any,
+      eventService,
+      aiService,
     );
 
     const input = new ImportEmailsInput();
@@ -171,6 +188,106 @@ describe('ImportEmailsUseCase', () => {
     expect(ticketRepo.create).not.toHaveBeenCalled();
     expect(ticketRepo.addMessage).toHaveBeenCalledTimes(1);
     expect(idGenerator.generate).toHaveBeenCalledTimes(1);
+    expect(eventService.emitNewMessage).toHaveBeenCalledWith('user-123', {
+      ticketId: 'ticket-1',
+      ticketSubject: 'Problème commande',
+      content: 'Nouveau message',
+    });
+  });
+
+  it('should mark message as risky when content is not safe', async () => {
+    const mockEmail = createMockGmailEmail({
+      id: 'gmail-risky',
+      subject: 'Angry customer',
+      content: 'I am very angry and will sue you!',
+      threadId: 'thread-risky',
+      from: 'customer@example.com',
+    });
+
+    const gmailService: jest.Mocked<IGmailService> = {
+      fetchRecentMessages: jest.fn().mockResolvedValue([mockEmail]),
+    } as any;
+
+    const ticketRepo = createTicketRepoMock();
+    ticketRepo.findMessageByGmailId.mockResolvedValue(null);
+    ticketRepo.findByThreadId.mockResolvedValue(null);
+
+    const idGenerator = createIdGeneratorMock();
+    idGenerator.generate
+      .mockReturnValueOnce('ticket-risky')
+      .mockReturnValueOnce('message-risky');
+
+    const autoReplyToTicket = createAutoReplyToTicketUseCaseMock();
+    const aiService = createAiServiceMock();
+    const eventService = createEventServiceMock();
+    aiService.isSafeForAutoReply.mockResolvedValue(false);
+
+    const useCase = new ImportEmailsUseCase(
+      gmailService,
+      ticketRepo,
+      idGenerator,
+      autoReplyToTicket as any,
+      eventService,
+      aiService,
+    );
+
+    const input = new ImportEmailsInput();
+    input.userId = 'user-123';
+    const result = await useCase.execute(input);
+
+    expect(result.imported).toBe(1);
+    expect(aiService.isSafeForAutoReply).toHaveBeenCalledWith('I am very angry and will sue you!');
+    expect(ticketRepo.markMessageAsRisky).toHaveBeenCalledWith('message-risky');
+    // autoReplyToTicket.execute is still called, but AutoReplyToTicketUseCase will block it
+    // because the message is marked as risky
+    expect(autoReplyToTicket.execute).toHaveBeenCalled();
+  });
+
+  it('should not emit new message event for new ticket (only emit new ticket)', async () => {
+    const mockEmail = createMockGmailEmail({
+      id: 'gmail-new',
+      subject: 'New ticket',
+      content: 'New customer message',
+      threadId: 'thread-new',
+      from: 'customer@example.com',
+    });
+
+    const gmailService: jest.Mocked<IGmailService> = {
+      fetchRecentMessages: jest.fn().mockResolvedValue([mockEmail]),
+    } as any;
+
+    const ticketRepo = createTicketRepoMock();
+    ticketRepo.findMessageByGmailId.mockResolvedValue(null);
+    ticketRepo.findByThreadId.mockResolvedValue(null);
+
+    const idGenerator = createIdGeneratorMock();
+    idGenerator.generate
+      .mockReturnValueOnce('ticket-new')
+      .mockReturnValueOnce('message-new');
+
+    const autoReplyToTicket = createAutoReplyToTicketUseCaseMock();
+    const aiService = createAiServiceMock();
+    const eventService = createEventServiceMock();
+    aiService.isSafeForAutoReply.mockResolvedValue(true);
+
+    const useCase = new ImportEmailsUseCase(
+      gmailService,
+      ticketRepo,
+      idGenerator,
+      autoReplyToTicket as any,
+      eventService,
+      aiService,
+    );
+
+    const input = new ImportEmailsInput();
+    input.userId = 'user-123';
+    await useCase.execute(input);
+
+    expect(eventService.emitNewTicket).toHaveBeenCalledWith('user-123', {
+      id: 'ticket-new',
+      subject: 'New ticket',
+    });
+    expect(eventService.emitNewMessage).not.toHaveBeenCalled();
   });
 
   it('should trigger auto-reply when message is from customer (not agent)', async () => {
@@ -196,12 +313,17 @@ describe('ImportEmailsUseCase', () => {
       .mockReturnValueOnce('message-id-3');
 
     const autoReplyToTicket = createAutoReplyToTicketUseCaseMock();
+    const aiService = createAiServiceMock();
+    const eventService = createEventServiceMock();
+    aiService.isSafeForAutoReply.mockResolvedValue(true);
 
     const useCase = new ImportEmailsUseCase(
       gmailService,
       ticketRepo,
       idGenerator,
       autoReplyToTicket as any,
+      eventService,
+      aiService,
     );
 
     const input = new ImportEmailsInput();
@@ -240,12 +362,17 @@ describe('ImportEmailsUseCase', () => {
       .mockReturnValueOnce('message-id-4');
 
     const autoReplyToTicket = createAutoReplyToTicketUseCaseMock();
+    const aiService = createAiServiceMock();
+    const eventService = createEventServiceMock();
+    aiService.isSafeForAutoReply.mockResolvedValue(true);
 
     const useCase = new ImportEmailsUseCase(
       gmailService,
       ticketRepo,
       idGenerator,
       autoReplyToTicket as any,
+      eventService,
+      aiService,
     );
 
     const input = new ImportEmailsInput();

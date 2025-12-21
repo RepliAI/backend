@@ -7,6 +7,8 @@ import { TicketStatus } from 'src/domain/tickets/value-objects/ticket-status.vo'
 import { IGMAIL_SERVICE, IGmailService } from 'src/domain/gmail/service/gmail.service';
 import { IIdGenerator, ID_GENERATOR } from 'src/domain/shared/services/id-generator.service';
 import { AutoReplyToTicketUseCase } from 'src/application/tickets/use-cases/auto-reply-to-ticket.usecase';
+import { I_AI_SERVICE, IAiService } from 'src/domain/shared/services/ai-service.interface';
+import { I_EVENT_SERVICE, IEventService } from 'src/domain/shared/services/event-service.interface';
 
 import { ImportEmailsInput, ImportEmailsOutput } from '../dto/import-email.dto';
 
@@ -20,6 +22,10 @@ export class ImportEmailsUseCase {
     @Inject(ID_GENERATOR)
     private readonly idGenerator: IIdGenerator,
     private readonly autoReplyToTicket: AutoReplyToTicketUseCase,
+    @Inject(I_EVENT_SERVICE)
+    private readonly eventService: IEventService,
+    @Inject(I_AI_SERVICE)
+    private readonly aiService: IAiService,
   ) { }
 
   async execute(input: ImportEmailsInput): Promise<ImportEmailsOutput> {
@@ -32,6 +38,7 @@ export class ImportEmailsUseCase {
       if (exists) continue;
 
       let ticket = await this.ticketRepository.findByThreadId(mail.threadId);
+      const isNewTicket = !ticket;
 
       if (!ticket) {
         ticket = new Ticket(
@@ -44,6 +51,10 @@ export class ImportEmailsUseCase {
         );
 
         await this.ticketRepository.create(ticket);
+        this.eventService.emitNewTicket(input.userId, {
+          id: ticket.id,
+          subject: ticket.subject,
+        });
       }
 
       const message = new Message(
@@ -58,12 +69,25 @@ export class ImportEmailsUseCase {
       );
       await this.ticketRepository.addMessage(ticket.id, message);
 
-      count++;
       if (mail.from !== 'agent') {
+        const isSafe = await this.aiService.isSafeForAutoReply(mail.content);
+        if (!isSafe) {
+          await this.ticketRepository.markMessageAsRisky(message.id);
+        }
+
+        if (!isNewTicket) {
+          this.eventService.emitNewMessage(input.userId, {
+            ticketId: ticket.id,
+            ticketSubject: ticket.subject,
+            content: message.content,
+          });
+        }
+
         this.autoReplyToTicket.execute(ticket.id, input.userId).catch(err => {
           console.error(`Auto-reply failed for ticket ${ticket.id}:`, err);
         });
       }
+      count++;
     }
 
     const output = new ImportEmailsOutput();
