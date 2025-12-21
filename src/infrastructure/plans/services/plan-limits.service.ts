@@ -24,7 +24,7 @@ export class PlanLimitsServiceImpl implements IPlanLimitsService {
         'pro',
         null,
         1,
-        null,
+        2,
         true,
         true,
     )],

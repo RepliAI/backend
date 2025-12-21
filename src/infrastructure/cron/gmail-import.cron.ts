@@ -1,10 +1,10 @@
-import { Injectable, Inject, Logger, ForbiddenException } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+// backend/src/infrastructure/cron/gmail-import.cron.ts
+import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 
-import { IGMAIL_SERVICE } from 'src/domain/gmail/service/gmail.service';
 import { ImportEmailsUseCase } from 'src/application/gmail/use-cases/import-emails.usecase';
-import { CheckPlanFeatureUseCase } from 'src/application/plans/use-cases/check-plan-feature.usecase';
-import { IUserPreferencesRepository, USER_PREFERENCES_REPOSITORY } from 'src/domain/user-preferences/repositories/user-preferences.repository';
+import { GetEligibleUsersForImportUseCase } from 'src/application/gmail/use-cases/get-eligible-users-for-import.usecase';
+import { IGMAIL_SERVICE } from 'src/domain/gmail/service/gmail.service';
 
 @Injectable()
 export class GmailImportCron {
@@ -12,66 +12,73 @@ export class GmailImportCron {
 
   constructor(
     private readonly importEmailsUseCase: ImportEmailsUseCase,
+    private readonly getEligibleUsersUseCase: GetEligibleUsersForImportUseCase,
     @Inject(IGMAIL_SERVICE) private readonly gmailService,
-    private readonly checkPlanFeature: CheckPlanFeatureUseCase,
-    @Inject(USER_PREFERENCES_REPOSITORY)
-    private readonly userPreferencesRepository: IUserPreferencesRepository,
   ) {}
 
-  @Cron(CronExpression.EVERY_MINUTE)
-  async handle() {
-    this.logger.log('CRON — Import Gmail démarré…');
+  @Cron('*/30 * * * * *')
+  async handleBusinessImport() {
+    await this.handleImport('business');
+  }
 
-    const users = await this.gmailService.getAllConnectedUsers();
-    if (users.length === 0) {
-      this.logger.log('Aucun utilisateur connecté à Gmail.');
-      return;
+  @Cron('0 */2 * * * *')
+  async handleProImport() {
+    await this.handleImport('pro');
+  }
+
+  private async handleImport(plan: 'pro' | 'business') {
+    this.logger.log(`CRON — Import Gmail pour plan ${plan} démarré…`);
+
+    try {
+      const eligibleUsers = await this.getEligibleUsersUseCase.execute(plan);
+      
+      if (eligibleUsers.userIds.length === 0) {
+        this.logger.log(`Aucun utilisateur ${plan} éligible pour l'import automatique.`);
+        return;
+      }
+
+      this.logger.log(`${eligibleUsers.userIds.length} utilisateur(s) ${plan} éligible(s).`);
+
+      const importPromises = eligibleUsers.userIds.map(userId =>
+        this.processUserImport(userId, plan)
+      );
+
+      await Promise.allSettled(importPromises);
+
+    } catch (error) {
+      this.logger.error(`Erreur lors de la récupération des utilisateurs ${plan}: ${error.message}`);
     }
+  }
 
-    for (const user of users) {
-      try {
-        await this.checkPlanFeature.checkAutoImport(user.userId);
-        const preferences = await this.userPreferencesRepository.getByUserId(user.userId);
-        if (!preferences || !preferences.autoImport) {
-          continue;
-        }
+  private async processUserImport(userId: string, plan: string): Promise<void> {
+    try {
+      const result = await this.importEmailsUseCase.execute({ userId });
 
-        const result = await this.importEmailsUseCase.execute({
-          userId: user.userId,
-        });
+      this.logger.log(
+        `Import Gmail pour user=${userId} (plan ${plan}) → ${result.imported} nouveaux messages`,
+      );
 
-        this.logger.log(
-          `Import Gmail pour user=${user.userId} → ${result.imported} nouveaux messages`,
-        );
+    } catch (err: any) {
+      const errorMessage = err?.message || err?.toString() || 'Unknown error';
+      this.logger.error(
+        `Erreur import Gmail pour user=${userId} (plan ${plan}): ${errorMessage}`,
+      );
 
-      } catch (err: any) {
-        if (err instanceof ForbiddenException) {
-          this.logger.error(
-            `Erreur import Gmail pour user=${user.userId}: ${err.message}`,
+      if (
+        errorMessage.includes('invalid_grant') ||
+        errorMessage.includes('insufficient authentication scopes') ||
+        errorMessage.includes('Gmail token has been revoked') ||
+        err?.code === 'invalid_grant'
+      ) {
+        try {
+          await this.gmailService.removeInvalidToken(userId);
+          this.logger.warn(
+            `Token Gmail invalide supprimé pour user=${userId}. L'utilisateur devra se reconnecter.`,
           );
-          continue;
-        }
-        const errorMessage = err?.message || err?.toString() || 'Unknown error';
-        this.logger.error(
-          `Erreur import Gmail pour user=${user.userId}: ${errorMessage}`,
-        );
-
-        if (
-          errorMessage.includes('invalid_grant') ||
-          errorMessage.includes('insufficient authentication scopes') ||
-          errorMessage.includes('Gmail token has been revoked') ||
-          err?.code === 'invalid_grant'
-        ) {
-          try {
-            await this.gmailService.removeInvalidToken(user.userId);
-            this.logger.warn(
-              `Token Gmail invalide supprimé pour user=${user.userId}. L'utilisateur devra se reconnecter.`,
-            );
-          } catch (deleteError) {
-            this.logger.error(
-              `Erreur lors de la suppression du token pour user=${user.userId}: ${deleteError}`,
-            );
-          }
+        } catch (deleteError) {
+          this.logger.error(
+            `Erreur lors de la suppression du token pour user=${userId}: ${deleteError}`,
+          );
         }
       }
     }

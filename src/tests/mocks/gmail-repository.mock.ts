@@ -3,6 +3,6 @@ import { IGmailTokenRepository } from 'src/domain/gmail/repositories/gmail-token
 export function createGmailRepositoryMock(): jest.Mocked<IGmailTokenRepository> {
   return {
     hasToken: jest.fn(),
-
+    findUsersEligibleForAutoImport: jest.fn(),
   };
 }
