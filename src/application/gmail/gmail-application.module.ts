@@ -9,6 +9,7 @@ import { GetGmailAuthUrlUseCase } from './use-cases/get-gmail-auth-url.usecase';
 import { HandleGmailCallbackUseCase } from './use-cases/handle-gmail-callback.usecase';
 import { ImportEmailsUseCase } from './use-cases/import-emails.usecase';
 import { GetGmailStatusUseCase } from './use-cases/get-gmail-status.usecase';
+import { GetEligibleUsersForImportUseCase } from './use-cases/get-eligible-users-for-import.usecase';
 
 @Module({
     imports: [
@@ -22,12 +23,14 @@ import { GetGmailStatusUseCase } from './use-cases/get-gmail-status.usecase';
         HandleGmailCallbackUseCase,
         ImportEmailsUseCase,
         GetGmailStatusUseCase,
+        GetEligibleUsersForImportUseCase,
     ],
     exports: [
         GetGmailAuthUrlUseCase,
         HandleGmailCallbackUseCase,
         ImportEmailsUseCase,
         GetGmailStatusUseCase,
+        GetEligibleUsersForImportUseCase,
     ],
 })
 export class GmailApplicationModule { }
