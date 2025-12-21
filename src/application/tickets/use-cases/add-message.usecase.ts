@@ -58,7 +58,7 @@ export class AddMessageToTicketUseCase {
       this.idGenerator.generate(),
       ticket.id,
       input.gmailId,
-      'agent',
+      input.isAutoReply ? 'ai' : 'agent',
       'customer',
       input.content,
       new Date(),

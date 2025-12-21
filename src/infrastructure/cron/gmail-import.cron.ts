@@ -1,4 +1,3 @@
-// backend/src/infrastructure/cron/gmail-import.cron.ts
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 
