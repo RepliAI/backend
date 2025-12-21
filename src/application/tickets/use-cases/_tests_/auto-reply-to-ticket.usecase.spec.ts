@@ -205,7 +205,7 @@ describe('AutoReplyToTicketUseCase', () => {
     expect(generateAiReply.execute).not.toHaveBeenCalled();
   });
 
-  it('should skip auto-reply when message is not safe for auto-reply', async () => {
+  it('should skip auto-reply and mark message as risky when message is not safe for auto-reply', async () => {
     getUserPreferences.execute.mockResolvedValue({
       tone: 'neutral',
       signature: '',
@@ -226,11 +226,13 @@ describe('AutoReplyToTicketUseCase', () => {
     const ticket = new Ticket('t1', 'user1', 'subject', 'open', new Date(), [lastMessage]);
     ticketRepository.findById.mockResolvedValue(ticket);
     openAiService.isSafeForAutoReply.mockResolvedValue(false);
+    ticketRepository.markMessageAsRisky.mockResolvedValue(undefined);
 
     await useCase.execute('ticket1', 'user1');
 
     expect(openAiService.isSafeForAutoReply).toHaveBeenCalledWith('I am very angry and will sue you!');
     expect(generateAiReply.execute).not.toHaveBeenCalled();
+    expect(ticketRepository.markMessageAsRisky).toHaveBeenCalledWith('msg1');
   });
 
   it('should generate and send auto-reply when all conditions are met', async () => {

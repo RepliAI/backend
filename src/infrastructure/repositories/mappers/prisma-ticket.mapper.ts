@@ -14,7 +14,8 @@ export class PrismaTicketMapper {
         message.to,
         message.content,
         message.date,
-        message.threadId
+        message.threadId,
+        message.isRisky ?? false
       )
     ) ?? [];
 

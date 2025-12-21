@@ -25,35 +25,63 @@ export class PrismaTicketRepository implements ITicketRepository {
   async listWithFilters(params: ListTicketsParams): Promise<PaginatedTicketsResult> {
     const { userId, status, search, page, pageSize } = params;
 
-    const where: TicketWhereClause = { userId };
+    const andConditions: any[] = [{ userId }];
 
     if (params.from || params.to) {
-      where.createdAt = {};
-
+      const dateCondition: any = {};
       if (params.from) {
-        where.createdAt.gte = params.from;
+        dateCondition.gte = params.from;
       }
       if (params.to) {
-        where.createdAt.lte = params.to;
+        dateCondition.lte = params.to;
       }
+      andConditions.push({ createdAt: dateCondition });
     }
 
     if (status) {
-      where.status = status;
+      andConditions.push({ status });
+    }
+
+    if (params.isRisky === true) {
+      andConditions.push({
+        messages: {
+          some: {
+            isRisky: true,
+          },
+        },
+      });
     }
 
     if (search) {
-      where.OR = [
+      const searchConditions: any[] = [
         { subject: { contains: search, mode: 'insensitive' } },
-        {
+      ];
+
+      if (params.isRisky === true) {
+        searchConditions.push({
+          messages: {
+            some: {
+              AND: [
+                { isRisky: true },
+                { content: { contains: search, mode: 'insensitive' } },
+              ],
+            },
+          },
+        });
+      } else {
+        searchConditions.push({
           messages: {
             some: {
               content: { contains: search, mode: 'insensitive' },
             },
           },
-        },
-      ];
+        });
+      }
+
+      andConditions.push({ OR: searchConditions });
     }
+
+    const where = andConditions.length === 1 ? andConditions[0] : { AND: andConditions };
 
     const [rows, total] = await this.prisma.$transaction([
       this.prisma.ticket.findMany({
@@ -129,6 +157,7 @@ export class PrismaTicketRepository implements ITicketRepository {
         to: message.to,
         content: message.content,
         date: message.date,
+        isRisky: message.isRisky ?? false,
       },
     });
   }
@@ -148,6 +177,8 @@ export class PrismaTicketRepository implements ITicketRepository {
       record.to,
       record.content,
       record.date,
+      record.threadId ?? undefined,
+      record.isRisky ?? false,
     );
   }
 
@@ -170,5 +201,12 @@ export class PrismaTicketRepository implements ITicketRepository {
     if (!msg) return null;
 
     return PrismaTicketMapper.toDomain(msg.ticket);
+  }
+
+  async markMessageAsRisky(messageId: string): Promise<void> {
+    await this.prisma.message.update({
+      where: { id: messageId },
+      data: { isRisky: true },
+    });
   }
 }

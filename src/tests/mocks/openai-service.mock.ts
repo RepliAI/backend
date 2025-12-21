@@ -6,3 +6,4 @@ export function createOpenAiServiceMock(): jest.Mocked<OpenAiService> {
     isSafeForAutoReply: jest.fn(),
   } as any;
 }
+

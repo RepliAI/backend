@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum, IsInt, Min, IsDateString } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEnum, IsInt, Min, IsDateString, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 import { TicketStatus } from 'src/domain/tickets/value-objects/ticket-status.vo';
 
@@ -34,4 +34,8 @@ export class ListTicketsInput {
   @IsOptional()
   @IsDateString()
   to?: Date;
+
+  @IsOptional()
+  @IsBoolean()
+  isRisky?: boolean;
 }

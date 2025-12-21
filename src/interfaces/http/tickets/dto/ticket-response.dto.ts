@@ -1,4 +1,4 @@
-import { IsString, IsDate, IsArray, ValidateNested } from 'class-validator';
+import { IsString, IsDate, IsArray, ValidateNested, IsOptional, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Ticket } from 'src/domain/tickets/entities/ticket.entity';
 
@@ -18,6 +18,10 @@ class MessageItemDto {
   @IsDate()
   @Type(() => Date)
   date: Date;
+
+  @IsOptional()
+  @IsBoolean()
+  isRisky?: boolean;
 }
 
 export class TicketResponseDto {
@@ -55,12 +59,13 @@ export class TicketResponseDto {
       subject: ticket.subject,
       status: ticket.status,
       createdAt: ticket.createdAt,
-      messages: (ticket.messages ?? []).map((m) => ({
-        id: m.id,
-        from: m.from,
-        to: m.to,
-        content: m.content,
-        date: m.date,
+      messages: (ticket.messages ?? []).map((message) => ({
+        id: message.id,
+        from: message.from,
+        to: message.to,
+        content: message.content,
+        date: message.date,
+        isRisky: message.isRisky,
       })),
     };
   }

@@ -62,6 +62,7 @@ export class AutoReplyToTicketUseCase {
                 this.logger.warn(
                     `Auto-reply blocked for ticket ${ticketId}: message content deemed unsafe for automatic response`
                 );
+                await this.ticketRepository.markMessageAsRisky(lastMessage.id);
                 return;
             }
 

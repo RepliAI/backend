@@ -6,3 +6,4 @@ export function createAiUsageTrackingRepoMock(): jest.Mocked<IAiUsageTrackingRep
     incrementUsage: jest.fn().mockResolvedValue(undefined),
   };
 }
+

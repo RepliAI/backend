@@ -8,11 +8,11 @@ datasource db {
 }
 
 model User {
-  id               String           @id @default(cuid())
-  email            String           @unique
+  id               String            @id @default(cuid())
+  email            String            @unique
   passwordHash     String
   refreshTokenHash String?
-  createdAt        DateTime         @default(now())
+  createdAt        DateTime          @default(now())
   gmailToken       GmailToken?
   subscription     Subscription?
   tickets          Ticket[]
@@ -51,6 +51,7 @@ model Message {
   date     DateTime
   gmailId  String?  @unique
   threadId String?
+  isRisky  Boolean  @default(false)
   ticket   Ticket   @relation(fields: [ticketId], references: [id])
 }
 

@@ -44,6 +44,7 @@ export class TicketsController {
     input.pageSize = query.pageSize;
     input.from = query.from ? new Date(query.from) : undefined;
     input.to = query.to ? new Date(query.to) : undefined;
+    input.isRisky = query.isRisky === 'true' || query.isRisky === true ? true : undefined;
     const result = await this.listTickets.execute(input);
 
     return {

@@ -8,5 +8,6 @@ export class Message {
     public readonly content: string,
     public readonly date: Date,
     public readonly threadId?: string,
+    public readonly isRisky: boolean = false,
   ) {}
 }
