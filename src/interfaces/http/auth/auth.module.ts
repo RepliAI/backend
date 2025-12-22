@@ -8,6 +8,7 @@ import { UsersInfrastructureModule } from 'src/infrastructure/users/users-infras
 import { AuthController } from './controllers/auth.controller';
 import { JwtStrategy } from './security/jwt.strategy';
 import { JwtAuthGuard } from './security/jwt-auth.guard';
+import { TokenRefreshInterceptor } from './interceptors/token-refresh.interceptor';
 
 @Module({
   imports: [
@@ -20,9 +21,12 @@ import { JwtAuthGuard } from './security/jwt-auth.guard';
   providers: [
     JwtStrategy,
     JwtAuthGuard,
+    TokenRefreshInterceptor
   ],
   exports: [
     UsersInfrastructureModule,
+    TokenRefreshInterceptor,
   ],
 })
+
 export class AuthModule {}
