@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { AuthModule } from './interfaces/http/auth/auth.module';
@@ -12,6 +13,7 @@ import { UserPreferencesModule } from './interfaces/http/user-preferences/user-p
 import { BillingHttpModule } from './interfaces/http/billing/billing-http.module';
 import { ProfileHttpModule } from './interfaces/http/profile/profile-http.module';
 import { WebSocketModule } from './infrastructure/websocket/websocket.module';
+import { TokenRefreshInterceptor } from './interfaces/http/auth/interceptors/token-refresh.interceptor';
 
 @Module({
   imports: [
@@ -27,6 +29,12 @@ import { WebSocketModule } from './infrastructure/websocket/websocket.module';
     BillingHttpModule,
     ProfileHttpModule,
     WebSocketModule,
+  ],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useExisting: TokenRefreshInterceptor,
+    },
   ],
 })
 export class AppModule { }
