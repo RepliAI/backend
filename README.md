@@ -1,99 +1,199 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Backend ReplyIA
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend de l'application ReplyIA, une plateforme de gestion de tickets et de réponses automatisées par IA via Gmail.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 🚀 Technologies
 
-## Description
+- **Framework**: NestJS 10
+- **Langage**: TypeScript
+- **Base de données**: PostgreSQL
+- **ORM**: Prisma 6
+- **Authentification**: JWT (Passport)
+- **WebSocket**: Socket.IO
+- **Intégrations**:
+  - Gmail API (Googleapis)
+  - OpenAI API
+  - Stripe (paiements)
+- **Email**: Nodemailer avec Handlebars
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 📋 Prérequis
 
-## Project setup
+- Node.js >= 18
+- PostgreSQL
+- npm ou yarn
+
+## 🔧 Installation
 
 ```bash
-$ npm install
+# Installer les dépendances
+npm install
+
+# Générer le client Prisma
+npx prisma generate
 ```
 
-## Compile and run the project
+## ⚙️ Configuration
+
+Créez un fichier `.env` à la racine du dossier `backend` avec les variables suivantes :
+
+```env
+# Base de données
+DATABASE_URL="postgresql://user:password@localhost:5432/replyia?schema=public"
+
+# Application
+PORT=3000
+FRONTEND_URL="http://localhost:3001"
+
+# JWT
+JWT_ACCESS_SECRET="votre-secret-access-token"
+JWT_REFRESH_SECRET="votre-secret-refresh-token"
+
+# Email
+MAIL_USER="votre-email@gmail.com"
+MAIL_PASS="votre-mot-de-passe-app"
+
+# OpenAI
+OPENAI_API_KEY="sk-..."
+
+# Google OAuth (Gmail)
+GOOGLE_CLIENT_ID="votre-client-id"
+GOOGLE_CLIENT_SECRET="votre-client-secret"
+GOOGLE_REDIRECT_URI="http://localhost:3000/gmail/callback"
+
+# Stripe
+STRIPE_SECRET_KEY="sk_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
+STRIPE_REDIRECT_URI="http://localhost:3000/billing"
+STRIPE_PRICE_PRO="price_..."
+STRIPE_PRICE_BUSINESS="price_..."
+```
+
+## 🗄️ Base de données
 
 ```bash
-# development
-$ npm run start
+# Appliquer les migrations
+npx prisma migrate dev
 
-# watch mode
-$ npm run start:dev
+# (Optionnel) Peupler la base de données
+npx prisma db seed
 
-# production mode
-$ npm run start:prod
+# Visualiser la base de données
+npx prisma studio
 ```
 
-## Run tests
+## 🏃 Scripts disponibles
 
 ```bash
-# unit tests
-$ npm run test
+# Développement (mode watch)
+npm run start:dev
 
-# e2e tests
-$ npm run test:e2e
+# Production
+npm run build
+npm run start:prod
 
-# test coverage
-$ npm run test:cov
+# Tests
+npm run test              # Tests unitaires
+npm run test:watch        # Tests en mode watch
+npm run test:cov          # Couverture de code
+npm run test:e2e          # Tests end-to-end
+
+# Linting et formatage
+npm run lint
+npm run format
 ```
 
-## Deployment
+## 🏗️ Architecture
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Le projet suit une architecture en couches (Clean Architecture / DDD) :
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+```
+src/
+├── domain/           # Entités et interfaces métier
+├── application/      # Cas d'usage (use cases)
+├── infrastructure/   # Implémentations techniques
+│   ├── prisma/       # Service Prisma
+│   ├── auth/         # Services d'authentification
+│   ├── integrations/ # Gmail, OpenAI, Stripe
+│   ├── mailer/       # Service d'envoi d'emails
+│   ├── websocket/    # Gateway WebSocket
+│   └── cron/         # Tâches planifiées
+└── interfaces/       # Contrôleurs HTTP
+    └── http/         # Routes REST
+```
+
+## 📁 Modules principaux
+
+- **Auth**: Authentification JWT, inscription, connexion, refresh token
+- **Users**: Gestion des utilisateurs, changement d'email
+- **Tickets**: Gestion des tickets et messages
+- **Gmail**: Intégration Gmail, synchronisation des emails
+- **Billing**: Gestion des abonnements Stripe
+- **Plans**: Gestion des plans tarifaires
+- **Stats**: Statistiques d'utilisation
+- **UserPreferences**: Préférences utilisateur (ton, signature, auto-import, auto-AI)
+- **WebSocket**: Notifications en temps réel
+
+## 🔐 Authentification
+
+L'API utilise JWT avec deux tokens :
+- **Access Token**: Durée de vie courte, inclus dans l'header `Authorization`
+- **Refresh Token**: Durée de vie longue, utilisé pour renouveler l'access token
+
+Les nouveaux tokens sont renvoyés dans les headers :
+- `X-New-Access-Token`
+- `X-New-Refresh-Token`
+
+## 📡 WebSocket
+
+Le serveur expose un gateway WebSocket pour les notifications en temps réel :
+- Mises à jour de tickets
+- Notifications utilisateur
+- Statut de synchronisation Gmail
+
+## 🧪 Tests
 
 ```bash
-$ npm install -g mau
-$ mau deploy
+# Tests unitaires
+npm run test
+
+# Tests avec couverture
+npm run test:cov
+
+# Tests end-to-end
+npm run test:e2e
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## 🚢 Déploiement
 
-## Resources
+1. **Build de l'application** :
+```bash
+npm run build
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+2. **Migrations de base de données** :
+```bash
+npx prisma migrate deploy
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+3. **Générer le client Prisma** :
+```bash
+npx prisma generate
+```
 
-## Support
+4. **Lancer en production** :
+```bash
+npm run start:prod
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## 📝 Notes
 
-## Stay in touch
+- Le webhook Stripe nécessite un body parser brut pour `/billing/webhook`
+- CORS est configuré pour autoriser le frontend défini dans `FRONTEND_URL`
+- Les tokens Gmail sont stockés chiffrés dans la base de données
+- Les réponses IA sont suivies dans la table `AiResponseUsage` pour la facturation
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## 📚 Documentation
 
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- [NestJS Documentation](https://docs.nestjs.com)
+- [Prisma Documentation](https://www.prisma.io/docs)
+- [Socket.IO Documentation](https://socket.io/docs/v4)
